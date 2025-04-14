@@ -3,6 +3,7 @@
 
 # Específicos do Projeto
 index.json
+files/*
 
 ### Python ###
 # Byte-compiled / optimized / DLL files
