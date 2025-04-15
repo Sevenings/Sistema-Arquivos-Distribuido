@@ -104,6 +104,14 @@ operacoes = {
         }
 
 
+def transferir_arquivo(path_arquivo, destino):
+    pass
+
+
+def receber_arquivo():
+    pass
+
+
 class Index:
     path_index: str
     path_files_folder: str
