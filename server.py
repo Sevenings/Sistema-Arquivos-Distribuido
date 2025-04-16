@@ -1,6 +1,8 @@
+import os
 import socket
 from pathlib import Path
 import json
+import sys
 
 ADDR = "localhost"
 PORT = 8989
@@ -39,20 +41,19 @@ def iniciar_server():
             conn, addr = server_socket.accept()
 
             # Nova conexão
-            with conn:
-                print(f"Nova conexão: {addr}")
+            print(f"Nova conexão: {addr}")
 
-                # Recebe o comando
-                comando_string = conn.recv(1024)
+            # Recebe o comando
+            comando_string = conn.recv(1024).decode()
 
-                # Passa no interpretador
-                operacao = interpretador(comando_string)
+            # Passa no interpretador
+            operacao = interpretador(comando_string)
 
-                # Executa a operação
-                resultado = operacao()
-                
-                # Retorna o resultado
-                conn.send(resultado)
+            # Executa a operação
+            resultado = operacao()
+            
+            # Retorna o resultado
+            conn.send(resultado)
 
 
             
@@ -104,12 +105,51 @@ operacoes = {
         }
 
 
-def transferir_arquivo(path_arquivo, destino):
-    pass
+def transferir_arquivo(path_arquivo, ip_dest, port_dest):
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client:
+        client.connect((ip_dest, port_dest))
+        print('Conectado')
+
+        path = Path(path_arquivo)
+        nome_arquivo = path.name
+        tamanho_arquivo = os.path.getsize(path)
+        numero_chunks = tamanho_arquivo // 1024
+        if tamanho_arquivo % 1024 != 0:
+            numero_chunks += 1
+
+        # Passa os parâmetros
+        parametros = {'nome_arquivo': nome_arquivo, 'numero_chunks': numero_chunks}
+        parametros_string = json.dumps(parametros)
+        print(f'Enviando: {parametros_string}')
+        parametros_bytes = json.dumps(parametros).encode()
+        client.send(parametros_bytes)
+
+        # Passa o arquivo
+        print('Enviando o arquivo...')
+        with open(path_arquivo, 'rb') as file:
+            for _ in range(numero_chunks):
+                chunk_content = file.read(1024)
+                client.send(chunk_content)
 
 
-def receber_arquivo():
-    pass
+def receber_arquivo(addr, port):
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server:
+        server.bind((addr, port))
+
+        server.listen()
+        connection, addr = server.accept()
+
+        # Receber parâmetros
+        parametros_string = connection.recv(1024).decode()
+        parametros = json.loads(parametros_string)
+        nome_arquivo = parametros['nome_arquivo']
+        numero_chunks = parametros['numero_chunks']
+
+        # Receber arquivo
+        with open(nome_arquivo, 'wb') as file:
+            for _ in range(numero_chunks):
+                chunk_content = connection.recv(1024)
+                file.write(chunk_content)
 
 
 class Index:
@@ -194,11 +234,14 @@ class Index:
 if __name__ == '__main__':
 
     # Setup
-    setup()
+    # setup()
     # iniciar_server()
+    modo = sys.argv[1]
 
-
-    
-    
-
+    if modo == 'send':
+        path_arquivo = sys.argv[2]
+        print(path_arquivo)
+        transferir_arquivo(path_arquivo, 'localhost', 5456)
+    elif modo == 'recv':
+        receber_arquivo('localhost', 5456)
 
