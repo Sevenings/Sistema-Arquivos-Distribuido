@@ -1,12 +1,15 @@
 import socket, json, os
 from pathlib import Path
+import time
 
 PORTA_PADRAO = 24939
 
 def transferir_arquivo(path_arquivo, ip_dest, port_dest=PORTA_PADRAO):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client:
+        time.sleep(1)
+        print('MFTP: Conectando...')
         client.connect((ip_dest, port_dest))
-        print('Conectado')
+        print('MFTP: Conectado')
 
         path = Path(path_arquivo)
         nome_arquivo = path.name
@@ -33,6 +36,7 @@ def transferir_arquivo(path_arquivo, ip_dest, port_dest=PORTA_PADRAO):
 def receber_arquivo(addr, port=PORTA_PADRAO, output_path='.'):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server:
         server.bind((addr, port))
+        print('MFTP: Conectado')
 
         server.listen()
         connection, addr = server.accept()
@@ -45,7 +49,8 @@ def receber_arquivo(addr, port=PORTA_PADRAO, output_path='.'):
 
         # Receber arquivo
         with open(f'{output_path}/{nome_arquivo}', 'wb') as file:
-            for _ in range(numero_chunks):
+            for i in range(numero_chunks):
+                print(f'Aguardando chunk {i}...')
                 chunk_content = connection.recv(1024)
                 file.write(chunk_content)
 

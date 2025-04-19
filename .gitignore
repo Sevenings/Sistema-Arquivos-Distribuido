@@ -4,6 +4,7 @@
 # Específicos do Projeto
 index.json
 files/*
+arquivos_teste/*
 
 ### Python ###
 # Byte-compiled / optimized / DLL files
