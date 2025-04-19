@@ -13,7 +13,6 @@ class Client:
         try:
             comando = self.__interpretar(argumentos)
             resposta = comando()
-            print(f'Resposta:\n{resposta}')
             self.__tratar_resposta(resposta)
         except ParametrosInvalidosError as e:
             print(e)
@@ -31,24 +30,24 @@ class Client:
                 raise ParametrosInvalidosError(f'Uso: adicionar <path_arquivo>')
 
             path_arquivo = argumentos[1]
-            return lambda: self.__adicionar(path_arquivo)
+            return lambda: self.adicionar(path_arquivo)
 
         elif operacao == 'deletar':
             if len(argumentos) < 2:
                 raise ParametrosInvalidosError(f'Uso: deletar <nome_arquivo>')
 
             nome_arquivo = argumentos[1]
-            return lambda: self.__deletar(nome_arquivo)
+            return lambda: self.deletar(nome_arquivo)
 
         elif operacao == 'baixar':
             if len(argumentos) < 2:
                 raise ParametrosInvalidosError(f'Uso: baixar <nome_arquivo>')
 
             nome_arquivo = argumentos[1]
-            return lambda: self.__baixar(nome_arquivo)
+            return lambda: self.baixar(nome_arquivo)
 
         elif operacao == 'listar':
-            return lambda: self.__listar()
+            return lambda: self.listar()
 
         else:
             raise OperacaoInvalidaError(f'"{operacao}" não é uma operação válida.')
@@ -61,13 +60,13 @@ class Client:
 
     def __aguarda_resposta(self, client_socket: socket.socket):
         resposta_bytes = client_socket.recv(1024)
-        resposta = resposta_bytes.decode()
-        # resposta = json.loads(resposta_string)
+        resposta_string = resposta_bytes.decode()
+        resposta = json.loads(resposta_string)
         return resposta
 
 
     def __fazer_transacao(self, transacao):
-        # Abre a conexão
+        # Solicitar conexão TCP
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client_socket:
             client_socket.connect((self.SERVER_ADDR, self.SERVER_PORT))
 
@@ -78,7 +77,7 @@ class Client:
         return resposta
         
 
-    def __adicionar(self, path_arquivo):
+    def adicionar(self, path_arquivo):
         def transacao_adicionar(client_socket):
             # Obtém os parâmetros
             nome_arquivo = Path(path_arquivo).name
@@ -87,41 +86,74 @@ class Client:
             comando = { 'operacao': 'adicionar', 'nome_arquivo': nome_arquivo }
             self.__enviar_comando(client_socket, comando)
             
-            # Aguarda um tempinho para o servidor abrir a conexão
-            sleep(1)
+            # Aguarda resposta do servidor
+            resposta = self.__aguarda_resposta(client_socket)
+
+            # Verificar se ocorreu erros e emitir
+            if resposta.get('status') == 'ERROR':
+                pass
 
             # Envia o arquivo
-            transferir_arquivo(path_arquivo, self.SERVER_ADDR)
-            
+            if resposta.get('status') == 'OK':
+                transferir_arquivo(path_arquivo, self.SERVER_ADDR)
+                
         return self.__fazer_transacao(transacao_adicionar)
 
         
-    def __deletar(self, nome_arquivo):
+    def deletar(self, nome_arquivo):
         def transacao_deletar(client_socket):
             # Envia comando
             comando = { 'operacao': 'deletar', 'nome_arquivo': nome_arquivo }
             self.__enviar_comando(client_socket, comando)
 
+            # Aguarda resposta do servidor
+            resposta = self.__aguarda_resposta(client_socket)
+
+            # Verificar se ocorreu erros e emitir
+            if resposta.get('status') == 'ERROR':
+                pass
+
+
         return self.__fazer_transacao(transacao_deletar)
 
 
-    def __baixar(self, nome_arquivo):
+    def baixar(self, nome_arquivo):
         def transacao_baixar(client_socket):
             # Obtém os parâmetros
             comando = { 'operacao': 'baixar', 'nome_arquivo': nome_arquivo }
+
             # Envia o comando
             self.__enviar_comando(client_socket, comando)
-            receber_arquivo(self.ADDR)
-            # Aguarda a resposta
+
+            # Aguarda resposta do servidor
             resposta = self.__aguarda_resposta(client_socket)
+
+            # Verificar se ocorreu erros e emitir
+            if resposta.get('status') == 'ERROR':
+                pass
+
+            # Executar a transação do arquivo
+            if resposta.get('status') == 'OK':
+                receber_arquivo(self.ADDR)
 
         return self.__fazer_transacao(transacao_baixar)
   
 
-    def __listar(self):
+    def listar(self):
         def transacao_listar(client_socket):
             comando = { 'operacao': 'listar', }
             self.__enviar_comando(client_socket, comando)
+
+            # Aguarda resposta do servidor
+            resposta = self.__aguarda_resposta(client_socket)
+
+            # Verificar se ocorreu erros e emitir
+            if resposta.get('status') == 'ERROR':
+                pass
+
+            if resposta.get('status') == 'OK':
+                conteudo = resposta.get('data')
+                print(conteudo)
 
         return self.__fazer_transacao(transacao_listar)
 

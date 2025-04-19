@@ -38,6 +38,7 @@ class Server:
         self.__criar_index()
         self.__criar_diretorios_arquivos()
 
+
     def __start(self):
         # Cria o socket
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
@@ -96,6 +97,9 @@ class Server:
 
 
     def __adicionar(self, nome_arquivo):
+        if Path(f'{FILES_FOLDER}/{nome_arquivo}').exists():
+            return resposta(status='ERROR', error_type=1, data='Arquivo já existe.')
+
         receber_arquivo(self.ADDR, output_path=FILES_FOLDER)
         with Index() as index:
             index.adicionar(nome_arquivo)
@@ -129,6 +133,9 @@ class Server:
         return lista.encode()
 
         
+def resposta(status, data=None, error_type=None):
+    msg = {'status': status, 'data': data, 'type': error_type}
+    return (json.dumps(msg)).encode()
 
 
 exemplo_comando = {
