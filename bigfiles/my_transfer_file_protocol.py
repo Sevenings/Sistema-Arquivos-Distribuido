@@ -4,6 +4,7 @@ import time
 
 PORTA_PADRAO = 24939
 
+# Transfere o arquivo
 def transferir_arquivo(path_arquivo, ip_dest, port_dest=PORTA_PADRAO):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client:
         time.sleep(1)
