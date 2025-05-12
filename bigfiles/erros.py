@@ -22,5 +22,3 @@ error_by_id = {
         '1': ErroArquivoJaExiste(),
         '2': ErroPoucaMemoria()
         }
-
-

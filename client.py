@@ -1,0 +1,9 @@
+#!.venv/bin/python
+
+import sys
+from bigfiles.server import Server
+from bigfiles.client import Client
+
+argumentos = sys.argv[1:]
+client = Client()
+client.run(argumentos)

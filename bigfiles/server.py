@@ -1,8 +1,10 @@
+from Pyro5.api import expose, behavior, Daemon, locate_ns
 import os
 import socket
 from pathlib import Path
 import json
 from .erros import ErroArquivoJaExiste, ErroArquivoNaoExiste
+import base64
 
 from .index import Index
 from .my_transfer_file_protocol import receber_arquivo, transferir_arquivo
@@ -15,25 +17,19 @@ FILES_FOLDER = 'files'
 
 
 
+@expose
 class Server:
     def __init__(self, address='localhost', port=8989, index_file='index.json', files_folder='files'):
         self.ADDR = address
         self.PORT = port
         self.INDEX_FILE = index_file
         self.FILES_FOLDER = files_folder
-        self.operacoes = {
-                # Nome da operação   Operação       Argumentos necessários  Verificação
-                'adicionar':        (self._adicionar,     ['nome_arquivo'], self._verificar_adicionar),
-                'deletar':          (self._deletar,       ['nome_arquivo'], self._verificar_deletar),
-                'baixar':           (self._baixar,        ['nome_arquivo'], self._verificar_baixar),
-                'listar':           (self._listar,        [],               None)
-                }
         self.client_ip = None
 
 
     def run(self):
         self._setup()
-        self._start()
+        # self._start()
 
 
     def _setup(self):
@@ -42,39 +38,7 @@ class Server:
 
 
     def _start(self):
-        # Cria o socket
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
-            # Inicia o servidor
-            server_socket.bind((self.ADDR, self.PORT))
-
-            while True:
-                # Aguarda novas conexões
-                server_socket.listen()
-                print(f"Servidor ouvindo em {self.ADDR}:{self.PORT}")
-                conn, addr = server_socket.accept()
-                self.client_ip = addr[0]
-                print(addr)
-
-                # Nova conexão
-                print(f"Nova conexão: {addr}")
-
-                # Recebe o comando
-                comando_string = conn.recv(1024).decode()
-
-                # Passa no interpretador
-                operacao, verificacao = self._interpretar(comando_string)
-
-                # Verifica se a operação pode ser realizada
-                permissao = resposta(status='OK')
-                if verificacao:
-                    permissao = verificacao()
-                conn.send(permissao)
-
-                # Executa a operação
-                resultado = operacao()
-                conn.send(resultado)
-
-                print('Execução terminada')
+        pass
 
 
     def _criar_index(self):
@@ -90,78 +54,80 @@ class Server:
             path_files_folder.mkdir()
 
 
-    def _interpretar(self, comando_string):
-        # Desserializa o json
-        comando = json.loads(comando_string)
-        
-        # Extrai o nome da operação
-        nome_operacao = comando['operacao']
-
-        # Extrai a operação e quais são os argumentos requeridos
-        operacao, argumentos_requeridos, verificar = self.operacoes[nome_operacao]
-
-        # Obtém os valores dos argumentos requeridos passados no comando
-        argumentos = [ comando[nome_argumento] for nome_argumento in argumentos_requeridos ]
-
-        funcao_verificar = None
-        if verificar:
-            funcao_verificar = lambda: verificar(*argumentos)
-
-        return lambda: operacao(*argumentos), funcao_verificar
-
-
-    def _verificar_adicionar(self, nome_arquivo):
+    def verificar_cp(self, nome_arquivo):
         with Index() as index:
             if index.existe(nome_arquivo):
-                return resposta(status='ERROR', error_id=ErroArquivoJaExiste.id, data='Arquivo já existe.')
-        return resposta(status='OK')
+                return False
+        return True
 
 
-    def _adicionar(self, nome_arquivo):
-        receber_arquivo(self.ADDR, output_path=FILES_FOLDER)
+    def cp(self, nome_arquivo, arquivo_data):
+        # Verifica se arquivo existe
+        if not self.verificar_cp(nome_arquivo):
+            raise ErroArquivoJaExiste 
+
+        encoding = arquivo_data.get('encoding')
+        data = arquivo_data.get('data')
+        if encoding == 'base64':
+            data = base64.b64decode(data)
+
+        # Salvar o arquivo
+        with open(f"{FILES_FOLDER}/{nome_arquivo}", 'wb') as file:
+            file.write(arquivo_data)
+
+        # Registrar no indice
         with Index() as index:
             index.adicionar(nome_arquivo)
-        return resposta(status='OK')
 
 
-    def _verificar_deletar(self, nome_arquivo):
+    def verificar_rm(self, nome_arquivo):
         with Index() as index:
             if not index.existe(nome_arquivo):
-                return resposta(status='ERROR', error_id=ErroArquivoNaoExiste.id, data='Arquivo não existe.')
-        return resposta(status='OK')
+                return False
+        return True
 
 
-    def _deletar(self, nome_arquivo):
+    def rm(self, nome_arquivo):
+        # Verifica se arquivo existe
+        if not self.verificar_rm(nome_arquivo):
+            raise ErroArquivoNaoExiste
+
         with Index() as index:
             path_arquivo = index.localizacao(nome_arquivo)
 
+        # Apagar arquivo
         os.remove(path_arquivo)
 
+        # Registrar no índice
         with Index() as index:
             index.deletar(nome_arquivo)
 
-        return resposta(status='OK')
 
-
-    def _verificar_baixar(self, nome_arquivo):
+    def verificar_get(self, nome_arquivo):
         with Index() as index:
             if not index.existe(nome_arquivo):
-                return resposta(status='ERROR', error_id=ErroArquivoNaoExiste.id, data='Arquivo não existe.')
-        return resposta(status='OK')
+                return False
+        return True
 
 
-    def _baixar(self, nome_arquivo):
+    def get(self, nome_arquivo):
+        if not self.verificar_get(nome_arquivo):
+            raise ErroArquivoNaoExiste
+
         with Index() as index:
             path_arquivo = index.localizacao(nome_arquivo)
-        transferir_arquivo(path_arquivo, ip_dest=self.client_ip)
-        return resposta(status='OK')
+
+        with open(path_arquivo, 'rb') as file:
+            data = file.read()
+
+        return data
 
 
-    def _listar(self):
+    def ls(self):
         with Index() as index:
             lista_arquivos = index.listar()
             print(lista_arquivos)
-        return resposta(status='OK', data=lista_arquivos)
+        return lista_arquivos
 
         
 def resposta(status, data=None, error_id=None) -> bytes:
@@ -174,5 +140,4 @@ exemplo_comando = {
         'operacao': 'adicionar',
         'nome_arquivo': 'shibuia.png'
         }
-
 
