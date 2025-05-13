@@ -55,6 +55,9 @@ class Client:
         elif operacao == 'ls':
             return self.ls()
 
+        elif operacao == '-h':
+            print(INSTRUCOES_USO)
+
         else:
             raise OperacaoInvalidaError(f'"{operacao}" não é uma operação válida.')
 
@@ -97,7 +100,7 @@ class Client:
             return resposta
 
 
-INSTRUCOES_USO = """Uso: client <operação> [args]
+INSTRUCOES_USO = """Uso: client [-h] <operação> [args]
 Operações:
     cp <origem> <destino>   -- Envia um arquivo ao servidor
     get <arquivo>           -- Baixa um arquivo do servidor
