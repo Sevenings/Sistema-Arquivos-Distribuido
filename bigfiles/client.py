@@ -107,7 +107,7 @@ Operações:
     rm <arquivo>            -- Remove um arquivo do servidor
     ls                      -- Lista os arquivos do servidor
 Opções:
-    --help -h               -- Mostra essa ajuda
+    -h, --help              -- Mostra essa ajuda
 
     """           
 
