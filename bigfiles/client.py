@@ -55,7 +55,7 @@ class Client:
         elif operacao == 'ls':
             return self.ls()
 
-        elif operacao == '-h':
+        elif operacao == '-h' or operacao == '--help':
             print(INSTRUCOES_USO)
 
         else:
@@ -100,12 +100,17 @@ class Client:
             return resposta
 
 
-INSTRUCOES_USO = """Uso: client [-h] <operação> [args]
+INSTRUCOES_USO = """Uso: client [opções] <operação> [args]
 Operações:
     cp <origem> <destino>   -- Envia um arquivo ao servidor
     get <arquivo>           -- Baixa um arquivo do servidor
     rm <arquivo>            -- Remove um arquivo do servidor
-    ls                      -- Lista os arquivos do servidor"""           
+    ls                      -- Lista os arquivos do servidor
+Opções:
+    --help -h               -- Mostra essa ajuda
+
+    """           
+
 
 
 class OperacaoInvalidaError(Exception):
