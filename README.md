@@ -32,6 +32,36 @@ cd Sistema-Arquivos-Distribuido
 ./client [-h] <operação> [argumentos]
 ```
 
+# Descrições técnicas
+
 ## Arquitetura
+
+Componentes:
+- Cliente
+- Servidor de arquivos
+- Servidor de nomes
+
+O **client** é um programa pelo qual o usuário pode se comunicar com o servidor de arquivos.
+Para tal, ele busca pelo **servidor de nomes** na rede local. Nele,
+o **client** automaticamente obtém o endereço do servidor de
+arquivos e envia ao **servidor** operação desejada (Copy, Get, List, Remove) e
+seus respectivos parâmetros via RMI, o qual
+processa sua requisição e retorna uma resposta (quando necessário).
+
+O **server** suporta as operações de Copy (upload e download), Get
+(download), List e Remove. Junto ao **server** há a implementação
+de um **Index**, responsável por armazenar quais arquivos estão
+armazenados e qual o seu path. Sempre que o Server faz uma operação
+de Copy ou Remove, o index é atualizado. A operação de List foi
+implementada em cima do Index e a de Get utiliza para saber qual o
+path do arquivo, evitando consultas demoradas.
+
+A biblioteca RMI utilizada é a Pyro5.
+
+O **servidor de nomes** é o padrão da Pyro5.
+
+
+
+
 
 ![Arquitetura](docs/imagens/arquitetura_versao_rmi.png)
