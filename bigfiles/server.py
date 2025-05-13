@@ -27,17 +27,12 @@ class Server:
 
 
     def run(self):
-        self._setup()
-        # self._start()
+        self.setup()
 
 
-    def _setup(self):
+    def setup(self):
         self._criar_index()
         self._criar_diretorios_arquivos()
-
-
-    def _start(self):
-        pass
 
 
     def _criar_index(self):
