@@ -34,4 +34,4 @@ cd Sistema-Arquivos-Distribuido
 
 ## Imagens
 
-![Arquitetura][docs/imagens/arquitetura_versao_rmi.png]
+![Arquitetura](docs/imagens/arquitetura_versao_rmi.png)
