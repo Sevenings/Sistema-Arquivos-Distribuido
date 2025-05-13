@@ -15,7 +15,7 @@ cd Sistema-Arquivos-Distribuido
 make setup
 ```
 
-2. Em um terminal execute o servidor de nomes
+2. No mesmo terminal execute o servidor de nomes
 ```
 cd Sistema-Arquivos-Distribuido
 make nameserver
