@@ -14,19 +14,25 @@ class Client:
         try:
             self.interpretar(argumentos)
         except ParametrosInvalidosError as e:
-            print(e)
+            print("Parametros inválidos.")
+            print(e.uso)
         except OperacaoInvalidaError as e:
-            print(e)
+            print("Operação inválida.")
+            print(e.uso)
+        except UsoIncorretoClientError as e:
+            print(INSTRUCOES_USO)
 
 
     def interpretar(self, argumentos):
         # Exemplo de entrada:
         # [ 'adicionar', 'shibuya.png' ]
         # [ 'listar' ]
+        if not len(argumentos):
+            raise UsoIncorretoClientError()
         operacao = argumentos[0]
         if operacao == 'cp':
             if len(argumentos) < 3:
-                raise ParametrosInvalidosError(f'Uso: cp <origem> <destino>')
+                raise ParametrosInvalidosError(f'Uso: client cp <origem> <destino>')
 
             origem = argumentos[1]
             destino = argumentos[2]
@@ -34,14 +40,14 @@ class Client:
 
         elif operacao == 'rm':
             if len(argumentos) < 2:
-                raise ParametrosInvalidosError(f'Uso: deletar <nome_arquivo>')
+                raise ParametrosInvalidosError(f'Uso: client rm <nome_arquivo>')
 
             nome_arquivo = argumentos[1]
             return self.rm(nome_arquivo)
 
         elif operacao == 'get':
             if len(argumentos) < 2:
-                raise ParametrosInvalidosError(f'Uso: baixar <nome_arquivo>')
+                raise ParametrosInvalidosError(f'Uso: client get <nome_arquivo>')
 
             nome_arquivo = argumentos[1]
             return self.get(nome_arquivo)
@@ -91,14 +97,26 @@ class Client:
             return resposta
 
 
+INSTRUCOES_USO = """Uso: client <operação> [args]
+Operações:
+    cp <origem> <destino>   -- Envia um arquivo ao servidor
+    get <arquivo>           -- Baixa um arquivo do servidor
+    rm <arquivo>            -- Remove um arquivo do servidor
+    ls                      -- Lista os arquivos do servidor"""           
 
 
 class OperacaoInvalidaError(Exception):
-    def __init__(self, *args: object) -> None:
+    def __init__(self, uso, *args: object) -> None:
         super().__init__(*args)
+        self.uso = uso
 
 
 class ParametrosInvalidosError(Exception):
+    def __init__(self, uso, *args: object) -> None:
+        super().__init__(*args)
+        self.uso = uso
+
+class UsoIncorretoClientError(Exception):
     def __init__(self, *args: object) -> None:
         super().__init__(*args)
 
