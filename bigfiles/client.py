@@ -1,7 +1,6 @@
 import base64
 from pathlib import Path
 import json, socket
-from .my_transfer_file_protocol import transferir_arquivo, receber_arquivo
 import bigfiles.erros as erros
 from Pyro5.api import Proxy
 

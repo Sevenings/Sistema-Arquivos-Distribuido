@@ -7,7 +7,6 @@ from .erros import ErroArquivoJaExiste, ErroArquivoNaoExiste
 import base64
 
 from .index import Index
-from .my_transfer_file_protocol import receber_arquivo, transferir_arquivo
 
 ADDR = "localhost"
 PORT = 8989
