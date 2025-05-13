@@ -1,0 +1,114 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (X11; Linux x86_64; rv:136.0) Gecko/20100101 Firefox/136.0" version="26.2.13">
+  <diagram id="C5RBs43oDa-KdzZeNtuy" name="Page-1">
+    <mxGraphModel dx="903" dy="733" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="WIyWlLk6GJQsqaUBKTNV-0" />
+        <mxCell id="WIyWlLk6GJQsqaUBKTNV-1" parent="WIyWlLk6GJQsqaUBKTNV-0" />
+        <mxCell id="VjLRHx5Ze1I2t0hvN1QC-3" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.25;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="WIyWlLk6GJQsqaUBKTNV-1" target="VjLRHx5Ze1I2t0hvN1QC-1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="140" y="200" as="sourcePoint" />
+            <mxPoint x="160" y="330" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="160" y="200" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="VjLRHx5Ze1I2t0hvN1QC-4" value="&lt;div&gt;Onde está&lt;/div&gt;&lt;div&gt;o Server?&lt;/div&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="VjLRHx5Ze1I2t0hvN1QC-3">
+          <mxGeometry x="-0.1125" y="-1" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="VjLRHx5Ze1I2t0hvN1QC-7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="WIyWlLk6GJQsqaUBKTNV-1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="220" y="190" as="sourcePoint" />
+            <mxPoint x="380" y="190" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="VjLRHx5Ze1I2t0hvN1QC-8" value="Operação" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="VjLRHx5Ze1I2t0hvN1QC-7">
+          <mxGeometry x="-0.3" y="1" relative="1" as="geometry">
+            <mxPoint y="1" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="VjLRHx5Ze1I2t0hvN1QC-0" value="Client" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="WIyWlLk6GJQsqaUBKTNV-1">
+          <mxGeometry x="140" y="160" width="80" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="VjLRHx5Ze1I2t0hvN1QC-5" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.75;exitY=0;exitDx=0;exitDy=0;entryX=0.8;entryY=1.038;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="WIyWlLk6GJQsqaUBKTNV-1" source="VjLRHx5Ze1I2t0hvN1QC-1" target="VjLRHx5Ze1I2t0hvN1QC-0">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="204" y="250" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="200" y="210" />
+              <mxPoint x="204" y="210" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="VjLRHx5Ze1I2t0hvN1QC-6" value="&lt;div&gt;Endereço&lt;/div&gt;&lt;div&gt;do Server&lt;/div&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="VjLRHx5Ze1I2t0hvN1QC-5">
+          <mxGeometry x="0.123" y="-1" relative="1" as="geometry">
+            <mxPoint y="30" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="VjLRHx5Ze1I2t0hvN1QC-1" value="&lt;div&gt;Name Server&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="WIyWlLk6GJQsqaUBKTNV-1">
+          <mxGeometry x="140" y="299.03" width="80" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="VjLRHx5Ze1I2t0hvN1QC-9" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="WIyWlLk6GJQsqaUBKTNV-1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="380" y="170" as="sourcePoint" />
+            <mxPoint x="220" y="170" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="VjLRHx5Ze1I2t0hvN1QC-10" value="&lt;div&gt;Resposta&lt;/div&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="VjLRHx5Ze1I2t0hvN1QC-9">
+          <mxGeometry x="0.2938" y="-1" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="VjLRHx5Ze1I2t0hvN1QC-13" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.25;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="WIyWlLk6GJQsqaUBKTNV-1" target="VjLRHx5Ze1I2t0hvN1QC-11">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="400" y="199.9999999999999" as="sourcePoint" />
+            <mxPoint x="400" y="280.0000000000001" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="VjLRHx5Ze1I2t0hvN1QC-14" value="Onde está&lt;br&gt;o arquivo?" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="VjLRHx5Ze1I2t0hvN1QC-13">
+          <mxGeometry x="-0.2395" relative="1" as="geometry">
+            <mxPoint y="2" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="VjLRHx5Ze1I2t0hvN1QC-19" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="WIyWlLk6GJQsqaUBKTNV-1" source="VjLRHx5Ze1I2t0hvN1QC-2" target="VjLRHx5Ze1I2t0hvN1QC-12">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="VjLRHx5Ze1I2t0hvN1QC-21" value="&lt;div&gt;Consulta&lt;/div&gt;&lt;div&gt;Arquivo&lt;/div&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="VjLRHx5Ze1I2t0hvN1QC-19">
+          <mxGeometry x="-0.2008" y="2" relative="1" as="geometry">
+            <mxPoint x="12" y="2" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="VjLRHx5Ze1I2t0hvN1QC-2" value="&lt;div&gt;Server&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="WIyWlLk6GJQsqaUBKTNV-1">
+          <mxGeometry x="380" y="160" width="80" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="VjLRHx5Ze1I2t0hvN1QC-17" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.75;exitY=0;exitDx=0;exitDy=0;" edge="1" parent="WIyWlLk6GJQsqaUBKTNV-1" source="VjLRHx5Ze1I2t0hvN1QC-11">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="440" y="280.0000000000001" as="sourcePoint" />
+            <mxPoint x="440" y="199.9999999999999" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="VjLRHx5Ze1I2t0hvN1QC-18" value="&lt;div&gt;Endereço&lt;/div&gt;&lt;div&gt;do arquivo&lt;/div&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="VjLRHx5Ze1I2t0hvN1QC-17">
+          <mxGeometry x="-0.1153" y="1" relative="1" as="geometry">
+            <mxPoint y="25" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="VjLRHx5Ze1I2t0hvN1QC-11" value="Index" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="WIyWlLk6GJQsqaUBKTNV-1">
+          <mxGeometry x="380" y="299.03" width="80" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="VjLRHx5Ze1I2t0hvN1QC-23" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="WIyWlLk6GJQsqaUBKTNV-1" source="VjLRHx5Ze1I2t0hvN1QC-12" target="VjLRHx5Ze1I2t0hvN1QC-2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="VjLRHx5Ze1I2t0hvN1QC-12" value="&lt;div&gt;Diretório&lt;/div&gt;&lt;div&gt;com arquivos&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="WIyWlLk6GJQsqaUBKTNV-1">
+          <mxGeometry x="580" y="160" width="80" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="VjLRHx5Ze1I2t0hvN1QC-27" value="&lt;h1 style=&quot;margin-top: 0px;&quot;&gt;Arquitetura do Sistema-Arquivos-Distribuido&lt;/h1&gt;&lt;p&gt;Consiste de um Client, Name Server, Server, Index e um Diretório com os arquivos. &lt;br&gt;&lt;/p&gt;&lt;p&gt;Através do Client, o usuário é capaz de interagir com o Servidor e realizar operações (cp, get, rm, ls). Para tal, o Name Server age como intermédio entre o Server, reduzindo acoplamento.&lt;/p&gt;&lt;p&gt;A comunicação entre Client, NameServer e Server acontece por RMI (Pyro5).&lt;/p&gt;" style="text;html=1;whiteSpace=wrap;overflow=hidden;rounded=0;" vertex="1" parent="WIyWlLk6GJQsqaUBKTNV-1">
+          <mxGeometry x="140" width="550" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="VjLRHx5Ze1I2t0hvN1QC-28" value="&lt;div align=&quot;center&quot;&gt;O index contém o &quot;path&quot; dos arquivos. Quando um arquivo é adicionado (cp) ou removido (rm) do server, o index é sempre atualizado, facilitando a consulta (get) e listagem (ls) dos arquivos.&lt;/div&gt;&lt;div align=&quot;center&quot;&gt;&lt;br&gt;&lt;/div&gt;&lt;div align=&quot;center&quot;&gt;Será de grande ajuda ter um índex centralizado quando os arquivos estiverem em várias máquinas.&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="WIyWlLk6GJQsqaUBKTNV-1">
+          <mxGeometry x="500" y="270" width="240" height="140.97" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

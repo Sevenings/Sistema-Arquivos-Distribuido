@@ -32,3 +32,6 @@ cd Sistema-Arquivos-Distribuido
 ./client [-h] <operação> [argumentos]
 ```
 
+## Imagens
+
+![Arquitetura][docs/imagens/arquitetura_versao_rmi.png]
