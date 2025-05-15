@@ -6,7 +6,7 @@ de Copy (cp), Remove (rm), Get (get), List (ls) feito com RMI (Pyro5).
 ![Upload Demo Image](docs/imagens/upload.png)
 
 
-## Executar
+# Executar
 
 Dependências:
 - Python
