@@ -1,5 +1,7 @@
 # Sistema-Arquivos-Distribuido
-Projeto para a criação de um sistema de arquivos distribuidos.
+
+Um sistema de arquivos (centralizado por enquanto) que implementa as operações 
+de Copy (cp), Remove (rm), Get (get), List (ls) feito com RMI (Pyro5).
 
 ![Upload Demo Image](docs/imagens/upload.png)
 
