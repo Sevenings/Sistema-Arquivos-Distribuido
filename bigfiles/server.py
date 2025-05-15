@@ -67,7 +67,7 @@ class Server:
 
         # Salvar o arquivo
         with open(f"{FILES_FOLDER}/{nome_arquivo}", 'wb') as file:
-            file.write(arquivo_data)
+            file.write(data)
 
         # Registrar no indice
         with Index() as index:

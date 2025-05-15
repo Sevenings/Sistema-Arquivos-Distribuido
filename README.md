@@ -1,6 +1,9 @@
 # Sistema-Arquivos-Distribuido
 Projeto para a criação de um sistema de arquivos distribuidos.
 
+![Upload Demo Image](docs/imagens/upload.png)
+
+
 ## Executar
 
 Dependências:
@@ -60,8 +63,17 @@ A biblioteca RMI utilizada é a Pyro5.
 
 O **servidor de nomes** é o padrão da Pyro5.
 
-
-
-
-
 ![Arquitetura](docs/imagens/arquitetura_versao_rmi.png)
+
+
+## Limitações e Melhorias
+
+1. **Servidor ocupado enquanto envia arquivos.** O suporte a múltiplos clientes 
+não ocorre de maneira ideal, de forma que, durante operações de upload e 
+download, o servidor não recebe requisições de outros clientes. (Single Thread)
+
+
+
+
+
+
