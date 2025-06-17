@@ -5,6 +5,26 @@ de Copy (cp), Remove (rm), Get (get), List (ls) feito com RMI (Pyro5).
 
 ![Upload Demo Image](docs/imagens/upload.png)
 
+# To-Do
+
+1. Serviço de Replicação
+
+- [x] Criar função que gera o hash
+- [ ] Criar Função que criará réplicas para um arquivo (com particionamento)
+- [ ]  Criar Função que verificará se os chunks não foram corrompidos no envio (verificação por hash), e se forem tentar fazer o reenvio novamente.
+  OBS: A lógica de replicação deve ser genrenciada por um serviço de metadados (JSON, conforme conversado na última aula)
+- [ ] Criar um caso de teste: Nó principal cair e o cliente conseguir acessar o arquivo pela réplica
+- [ ] Criar uma função que gera logs ou (adicionar tracing)
+
+2. Tolerância a Falhas
+
+- [ ] Criar Função que envia os Heartbeats de cada nó
+- [ ] Criar função com identificação de quando o armazenamento falhar redirecionar para as réplicas
+- [ ] Em caso de atualizações nos arquivos, é necessário ter uma função que atualize todas as réplicas do sistema
+- [ ] Gerar logs de todos os casos acima
+
+3. Data Sharing
+
 
 # Executar
 
