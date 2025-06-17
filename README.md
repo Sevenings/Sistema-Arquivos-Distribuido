@@ -10,8 +10,8 @@ de Copy (cp), Remove (rm), Get (get), List (ls) feito com RMI (Pyro5).
 1. Serviço de Replicação
 
 - [x] Criar função que gera o hash
-- [ ] Criar Função que criará réplicas para um arquivo (com particionamento)
-- [ ]  Criar Função que verificará se os chunks não foram corrompidos no envio (verificação por hash), e se forem tentar fazer o reenvio novamente.
+- [ ] Criar Função que criará réplicas para um arquivo (com particionamento, somente para arquivos maiores que 4MB)
+- [ ] Criar Função que verificará se os chunks não foram corrompidos no envio (verificação por hash), e se forem tentar fazer o reenvio novamente.
   OBS: A lógica de replicação deve ser genrenciada por um serviço de metadados (JSON, conforme conversado na última aula)
 - [ ] Criar um caso de teste: Nó principal cair e o cliente conseguir acessar o arquivo pela réplica
 - [ ] Criar uma função que gera logs ou (adicionar tracing)
@@ -24,6 +24,9 @@ de Copy (cp), Remove (rm), Get (get), List (ls) feito com RMI (Pyro5).
 - [ ] Gerar logs de todos os casos acima
 
 3. Data Sharing
+
+- [ ] Adptar funções de read, write e copy para arquitetura de múltiplos chunks verificando sempre o hash das repartições
+- [ ] Criar casos de testes de falhas intencionais para avaliar se o processo está coerente
 
 
 # Executar
@@ -93,9 +96,3 @@ O **servidor de nomes** é o padrão da Pyro5.
 1. **Servidor ocupado enquanto envia arquivos.** O suporte a múltiplos clientes 
 não ocorre de maneira ideal, de forma que, durante operações de upload e 
 download, o servidor não recebe requisições de outros clientes. (Single Thread)
-
-
-
-
-
-
