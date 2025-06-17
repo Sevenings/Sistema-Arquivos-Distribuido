@@ -64,10 +64,13 @@ class Index:
             raise Exception(f'Arquivo {nome_arquivo} já existe com esse nome')
 
 
-    def adicionar(self, nome_arquivo):
+    def adicionar(self, nome_arquivo: str, hash: str):
         self.__conferir_existencia(nome_arquivo, False)
 
-        self.index[nome_arquivo] = f'{self.path_files_folder}/{nome_arquivo}'
+        self.index[nome_arquivo] = {
+                'hash': hash, 
+                'path': f'{self.path_files_folder}/{nome_arquivo}'
+            }
 
 
     def deletar(self, nome_arquivo):
@@ -77,11 +80,10 @@ class Index:
 
 
     def listar(self):
-        # return [ key for key in self.index.keys() ]
         return [ key for key in self.index.keys() ]
 
 
     def localizacao(self, nome_arquivo):
-        return self.index[nome_arquivo]
+        return self.index[nome_arquivo]['path']
 
 

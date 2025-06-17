@@ -1,0 +1,63 @@
+{
+    "arquivo_sharded.txt": {
+        "hash": 9147234932147,
+        "chunks_count": 6,
+        "1": {
+            "hash": 47149559341721,
+            "locais": [
+                {
+                    "ip": "maquina1",
+                    "local": "files/arquivo_chunk_1.txt",
+                },
+                {
+                    "ip": "maquina1",
+                    "local": "files/arquivo_chunk_1.txt",
+                },
+                {
+                    "ip": "maquina1",
+                    "local": "files/arquivo_chunk_1.txt",
+                }
+            ],
+        },
+        "2": {
+            "hash": 150452347447,
+            "locais": [
+                "maquina4:files/arquivo_chunk_2.txt",
+                "maquina5:files/arquivo_chunk_2.txt",
+                "maquina6:files/arquivo_chunk_2.txt"
+            ],
+        },
+        "3": {
+            "hash": 951342729348,
+            "locais": [
+                "maquina1:files/arquivo_chunk_3.txt",
+                "maquina3:files/arquivo_chunk_3.txt",
+                "maquina2:files/arquivo_chunk_3.txt"
+            ],
+        },
+        "4": {
+            "hash": 5239874934323,
+            "locais": [
+                "maquina4:files/arquivo_chunk_4.txt",
+                "maquina8:files/arquivo_chunk_4.txt",
+                "maquina9:files/arquivo_chunk_4.txt"
+            ],
+        },
+        "5": {
+            "hash": 7439287491003,
+            "locais": [
+                "maquina3:files/arquivo_chunk_5.txt",
+                "maquina9:files/arquivo_chunk_5.txt",
+                "maquina2:files/arquivo_chunk_5.txt"
+            ],
+        },
+        "6": {
+            "hash": 019234810482,
+            "locais": [
+                "maquina3:files/arquivo_chunk_6.txt",
+                "maquina6:files/arquivo_chunk_6.txt",
+                "maquina1:files/arquivo_chunk_6.txt"
+            ],
+        },
+    }
+}
