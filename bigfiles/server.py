@@ -3,6 +3,8 @@ import os
 import socket
 from pathlib import Path
 import json
+
+from .utils import gerar_hash_arquivo
 from .erros import ErroArquivoJaExiste, ErroArquivoNaoExiste
 import base64
 
@@ -55,15 +57,19 @@ class Server:
         return True
 
 
-    def cp(self, nome_arquivo, arquivo_data):
+    def cp(self, nome_arquivo, arquivo_data_package):
         # Verifica se arquivo existe
         if not self.verificar_cp(nome_arquivo):
             raise ErroArquivoJaExiste 
 
-        encoding = arquivo_data.get('encoding')
-        data = arquivo_data.get('data')
+        # Extrai os dados do arquivo
+        encoding = arquivo_data_package.get('encoding')
+        data = arquivo_data_package.get('data')
         if encoding == 'base64':
             data = base64.b64decode(data)
+
+        # Calcular o Hash
+        hash = gerar_hash_arquivo(data)
 
         # Salvar o arquivo
         with open(f"{FILES_FOLDER}/{nome_arquivo}", 'wb') as file:
@@ -71,7 +77,7 @@ class Server:
 
         # Registrar no indice
         with Index() as index:
-            index.adicionar(nome_arquivo)
+            index.adicionar(nome_arquivo, hash)
 
 
     def verificar_rm(self, nome_arquivo):
