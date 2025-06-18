@@ -1,63 +1,57 @@
 {
-    "arquivo_sharded.txt": {
-        "hash": 9147234932147,
-        "chunks_count": 6,
+    "dinossauro.webp": {
+        "hash": "86a61b52e5f3e3b11d57785db7a04ac0004fe0ebee891ee5ae9cc2a721813e79",
+        "chunks_count": 3,
         "1": {
-            "hash": 47149559341721,
+            "hash": "4d67a97d6cd93f9e369902eefc9830247d931aa72e2a8b58fda7f073ed6194fb",
             "locais": [
                 {
-                    "ip": "maquina1",
-                    "local": "files/arquivo_chunk_1.txt",
+                    "ip": "192.168.0.23",
+                    "local": "files/dinossauro_chunk_1.webp",
                 },
                 {
-                    "ip": "maquina1",
-                    "local": "files/arquivo_chunk_1.txt",
+                    "ip": "192.168.0.46",
+                    "local": "files/dinossauro_chunk_1.webp",
                 },
                 {
-                    "ip": "maquina1",
-                    "local": "files/arquivo_chunk_1.txt",
+                    "ip": "192.168.0.125",
+                    "local": "files/dinossauro_chunk_1.webp",
                 }
             ],
         },
         "2": {
-            "hash": 150452347447,
+            "hash": "c8f6eeea9b4c63b640434eb8b691f23ac5f551f8c4e413662aee5b3d19c8ec2a",
             "locais": [
-                "maquina4:files/arquivo_chunk_2.txt",
-                "maquina5:files/arquivo_chunk_2.txt",
-                "maquina6:files/arquivo_chunk_2.txt"
+                {
+                    "ip": "192.168.0.125",
+                    "local": "files/dinossauro_chunk_2.webp",
+                },
+                {
+                    "ip": "192.168.49.88",
+                    "local": "files/dinossauro_chunk_2.webp",
+                },
+                {
+                    "ip": "192.168.0.101",
+                    "local": "files/dinossauro_chunk_2.webp",
+                }
             ],
         },
         "3": {
-            "hash": 951342729348,
+            "hash": "c8f6eeea9b4c63b640434eb8b691f23ac5f551f8c4e413662aee5b3d19c8ec2a",
             "locais": [
-                "maquina1:files/arquivo_chunk_3.txt",
-                "maquina3:files/arquivo_chunk_3.txt",
-                "maquina2:files/arquivo_chunk_3.txt"
-            ],
-        },
-        "4": {
-            "hash": 5239874934323,
-            "locais": [
-                "maquina4:files/arquivo_chunk_4.txt",
-                "maquina8:files/arquivo_chunk_4.txt",
-                "maquina9:files/arquivo_chunk_4.txt"
-            ],
-        },
-        "5": {
-            "hash": 7439287491003,
-            "locais": [
-                "maquina3:files/arquivo_chunk_5.txt",
-                "maquina9:files/arquivo_chunk_5.txt",
-                "maquina2:files/arquivo_chunk_5.txt"
-            ],
-        },
-        "6": {
-            "hash": 019234810482,
-            "locais": [
-                "maquina3:files/arquivo_chunk_6.txt",
-                "maquina6:files/arquivo_chunk_6.txt",
-                "maquina1:files/arquivo_chunk_6.txt"
-            ],
-        },
+                {
+                    "ip": "192.168.0.100",
+                    "local": "files/dinossauro_chunk_3.webp",
+                },
+                {
+                    "ip": "192.168.0.210",
+                    "local": "files/dinossauro_chunk_3.webp",
+                },
+                {
+                    "ip": "192.168.0.13",
+                    "local": "files/dinossauro_chunk_3.webp",
+                }
+            ]
+        }
     }
 }
