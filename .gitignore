@@ -5,6 +5,7 @@
 index.json
 files/*
 arquivos_teste/*
+*.db
 
 ### Python ###
 # Byte-compiled / optimized / DLL files
