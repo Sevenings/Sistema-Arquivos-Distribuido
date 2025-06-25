@@ -1,10 +1,12 @@
 import os
-from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, Table
-from sqlalchemy.orm import declarative_base, relationship
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, Table, create_engine
+from sqlalchemy.orm import declarative_base, relationship, sessionmaker
+from bigfiles import config
 
-basedir = os.path.abspath(os.path.dirname(__file__))
+engine = create_engine(config.get("DATABASE_PATH"))
 
 Base = declarative_base()
+SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
 
 
 # Relação N x M entre Máquinas e Shards
@@ -22,9 +24,12 @@ class Maquina(Base):
     endereco = Column(String(256), unique=True)
     ultimo_heartbeat = Column(DateTime)
     espaco_livre = Column(Integer) # Em Megabytes
-    cpu = Column(Integer)
+    cpu = Column(Integer) # Em porcentagem
 
     shards = relationship('Shard', secondary=contem_table, back_populates='maquina')
+
+    def __repr__(self) -> str:
+        return f"<Maquina {self.endereco}>"
 
 
 class Shard(Base):
@@ -50,3 +55,5 @@ class Arquivo(Base):
     shards = relationship('Shard', back_populates='arquivo')
 
 
+def iniciar_db():
+    Base.metadata.create_all(engine)

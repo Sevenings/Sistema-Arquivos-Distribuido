@@ -61,6 +61,17 @@ class Client:
         else:
             raise OperacaoInvalidaError(f'"{operacao}" não é uma operação válida.')
 
+    def upload(self, nome_arquivo):
+        # TODO:Rascunho. Algoritmo de upload. 
+        # Encontra o file_server
+        # Abre o arquivo
+        # Particiona
+        # Para cada parte, envia separadamente
+        with Proxy("PYRONAME:example.fileserver") as file_server:
+            with open(nome_arquivo, 'rb') as file:
+                for fragmento in fragmentar(file)
+                    upload_fragmento(fragmento)
+
 
     def cp(self, origem, destino=None):
         if not destino:
