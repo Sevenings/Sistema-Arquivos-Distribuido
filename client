@@ -6,4 +6,6 @@ from bigfiles.client import Client
 
 argumentos = sys.argv[1:]
 client = Client()
-client.run(argumentos)
+# client.run(argumentos)
+client.upload("arquivos/dinossauro.webp")
+

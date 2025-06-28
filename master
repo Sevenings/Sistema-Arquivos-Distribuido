@@ -1,0 +1,6 @@
+#!.venv/bin/python
+
+import sys
+from bigfiles.master import Master
+
+Master().start()

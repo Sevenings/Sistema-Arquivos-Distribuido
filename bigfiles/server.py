@@ -1,10 +1,9 @@
-from Pyro5.api import expose, behavior, Daemon, locate_ns
+from Pyro5.api import expose, behavior, Daemon, locate_ns, Proxy
 import os
-import socket
 from pathlib import Path
 import json
 
-from .utils import gerar_hash_arquivo
+from .hash import calcular_sha256_bytes
 from .erros import ErroArquivoJaExiste, ErroArquivoNaoExiste
 import base64
 
@@ -26,6 +25,33 @@ class Server:
         self.INDEX_FILE = index_file
         self.FILES_FOLDER = files_folder
         self.client_ip = None
+        self.id = self.loadId()
+
+
+    def start(self):
+        # Se não houver ID (Primeira vez iniciado) acessa o master e procura um ID
+        if not self.id:
+            with Proxy("PYRONAME:bigfs.master") as master:
+                self.id = master.registrar_nova_maquina()
+                self.saveId()
+
+        # Se inscreve no servidor de nomes e aguarda requisições
+        daemon = Daemon()
+        ns = locate_ns()
+        uri = daemon.register(self)
+        ns.register(f"bigfs.node_{self.id}", uri)
+        daemon.requestLoop()
+
+    
+    def loadId(self):
+        with open("id.txt", "r") as f:
+            id = int(f.read())
+        return id
+
+    
+    def saveId(self):
+        with open("id.txt", "w") as f:
+            f.write(str(self.id))
 
 
     def run(self):
@@ -69,7 +95,7 @@ class Server:
             data = base64.b64decode(data)
 
         # Calcular o Hash
-        hash = gerar_hash_arquivo(data)
+        hash = calcular_sha256_bytes(data)
 
         # Salvar o arquivo
         with open(f"{FILES_FOLDER}/{nome_arquivo}", 'wb') as file:

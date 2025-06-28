@@ -1,14 +1,75 @@
 import base64
 from pathlib import Path
-import json, socket
-import bigfiles.erros as erros
+from bigfiles.erros import OperacaoInvalidaError, ParametrosInvalidosError, UsoIncorretoClientError
 from Pyro5.api import Proxy
+from bigfiles.hash import calcular_sha256, calcular_sha256_bytes
+from bigfiles.fragmentar import fragmentar
 
 class Client:
     SERVER_ADDR='localhost'
     SERVER_PORT=8989
 
     ADDR='localhost'
+
+
+    def upload(self, path_arquivo):
+        # Metadados
+        nome_arquivo = Path(path_arquivo).name
+        hash_arquivo = calcular_sha256(path_arquivo)
+
+        # Conecta no servidor de arquivos
+        with Proxy("PYRONAME:bigfs.master") as file_server:
+
+            # Fragmenta o arquivo e envia cada fragmento
+            for i, fragmento in fragmentar(path_arquivo):
+                hash_fragmento = calcular_sha256_bytes(fragmento)
+                file_server.upload_fragmento(
+                    nome_arquivo=nome_arquivo,
+                    hash_arquivo=hash_arquivo,
+                    hash_fragmento=hash_fragmento,
+                    ordem=i,
+                    fragmento_data=fragmento
+                )
+
+
+
+    def cp(self, origem, destino=None):
+        if not destino:
+            destino = origem
+
+        with Proxy("PYRONAME:bigfs.master") as file_server:
+            # Obtém os parâmetros
+            with open(origem, "rb") as f:
+                dados = f.read()
+
+            resposta = file_server.cp(destino, dados)
+            print(resposta)
+
+        
+    def rm(self, nome_arquivo):
+        with Proxy("PYRONAME:bigfs.master") as file_server:
+            data = file_server.rm(nome_arquivo)
+
+
+    def get(self, nome_arquivo):
+        with Proxy("PYRONAME:bigfs.master") as file_server:
+            data = file_server.get(nome_arquivo)
+
+        encoding = data.get('encoding')
+        if encoding == 'base64':
+            data = data.get('data')
+            data = base64.b64decode(data)
+
+        with open(nome_arquivo, 'wb') as file:
+            file.write(data)
+  
+
+    def ls(self):
+        with Proxy("PYRONAME:bigfs.master") as file_server:
+            resposta = file_server.ls()
+            print(resposta)
+            return resposta
+
 
     def run(self, argumentos: list):
         try:
@@ -25,7 +86,7 @@ class Client:
 
     def interpretar(self, argumentos):
         # Exemplo de entrada:
-        # [ 'adicionar', 'shibuya.png' ]
+        # [ 'upload', 'shibuya.png' ]
         # [ 'listar' ]
         if not len(argumentos):
             raise UsoIncorretoClientError()
@@ -61,54 +122,7 @@ class Client:
         else:
             raise OperacaoInvalidaError(f'"{operacao}" não é uma operação válida.')
 
-    def upload(self, nome_arquivo):
-        # TODO:Rascunho. Algoritmo de upload. 
-        # Encontra o file_server
-        # Abre o arquivo
-        # Particiona
-        # Para cada parte, envia separadamente
-        with Proxy("PYRONAME:example.fileserver") as file_server:
-            with open(nome_arquivo, 'rb') as file:
-                for fragmento in fragmentar(file)
-                    upload_fragmento(fragmento)
 
-
-    def cp(self, origem, destino=None):
-        if not destino:
-            destino = origem
-
-        with Proxy("PYRONAME:example.fileserver") as file_server:
-            # Obtém os parâmetros
-            with open(origem, "rb") as f:
-                dados = f.read()
-
-            resposta = file_server.cp(destino, dados)
-            print(resposta)
-
-        
-    def rm(self, nome_arquivo):
-        with Proxy("PYRONAME:example.fileserver") as file_server:
-            data = file_server.rm(nome_arquivo)
-
-
-    def get(self, nome_arquivo):
-        with Proxy("PYRONAME:example.fileserver") as file_server:
-            data = file_server.get(nome_arquivo)
-
-        encoding = data.get('encoding')
-        if encoding == 'base64':
-            data = data.get('data')
-            data = base64.b64decode(data)
-
-        with open(nome_arquivo, 'wb') as file:
-            file.write(data)
-  
-
-    def ls(self):
-        with Proxy("PYRONAME:example.fileserver") as file_server:
-            resposta = file_server.ls()
-            print(resposta)
-            return resposta
 
 
 INSTRUCOES_USO = """Uso: client [opções] <operação> [args]
@@ -123,19 +137,4 @@ Opções:
     """           
 
 
-
-class OperacaoInvalidaError(Exception):
-    def __init__(self, uso, *args: object) -> None:
-        super().__init__(*args)
-        self.uso = uso
-
-
-class ParametrosInvalidosError(Exception):
-    def __init__(self, uso, *args: object) -> None:
-        super().__init__(*args)
-        self.uso = uso
-
-class UsoIncorretoClientError(Exception):
-    def __init__(self, *args: object) -> None:
-        super().__init__(*args)
 
