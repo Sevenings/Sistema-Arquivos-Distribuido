@@ -31,7 +31,7 @@ class Server:
     def start(self):
         # Se não houver ID (Primeira vez iniciado) acessa o master e procura um ID
         if not self.id:
-            self.registrar_no_cluster()
+            self.cadastrar_no_cluster()
 
         # Se inscreve no servidor de nomes e aguarda requisições
         daemon = Daemon()
@@ -52,7 +52,7 @@ class Server:
             f.write(str(self.id))
 
 
-    def registrar_no_cluster(self):
+    def cadastrar_no_cluster(self):
         with Proxy("PYRONAME:bigfs.master") as master:
             self.id = master.registrar_nova_maquina()
             self.saveId()
