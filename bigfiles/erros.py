@@ -32,3 +32,10 @@ class ErroArquivoJaExiste(Exception):
 class ErroPoucaMemoria(Exception):
     def __init__(self, *args: object) -> None:
         super().__init__(*args)
+
+# Erros Master
+# -----------------------
+
+class ErroMaquinasNaoEncontradas(Exception):
+    def __init__(self, *args: object) -> None:
+        super().__init__(*args)

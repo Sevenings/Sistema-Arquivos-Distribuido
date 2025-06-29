@@ -21,7 +21,7 @@ class Maquina(Base):
     espaco_livre = Column(Integer, nullable=True) # Em Megabytes
     cpu = Column(Integer, nullable=True) # Em porcentagem
 
-    shards = relationship('Shard', secondary=contem_table, back_populates='maquina')
+    shards = relationship('Shard', secondary=contem_table, back_populates='maquinas')
 
     def __repr__(self) -> str:
         return f"<Maquina {self.endereco}>"
@@ -36,7 +36,7 @@ class Shard(Base):
     id_arquivo = Column(Integer, ForeignKey('arquivos.id'))
 
     arquivo = relationship('Arquivo', back_populates='shards')
-    maquina = relationship('Maquina', secondary=contem_table, back_populates='shards')
+    maquinas = relationship('Maquina', secondary=contem_table, back_populates='shards')
 
 
 class Arquivo(Base):

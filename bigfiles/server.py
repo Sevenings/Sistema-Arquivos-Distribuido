@@ -25,34 +25,44 @@ class Server:
         self.INDEX_FILE = index_file
         self.FILES_FOLDER = files_folder
         self.client_ip = None
+        self.ID_CACHE_PATH = "id.txt"
         self.id = self.loadId()
 
 
     def start(self):
         # Se não houver ID (Primeira vez iniciado) acessa o master e procura um ID
-        if not self.id:
+        if self.id is None:
             self.cadastrar_no_cluster()
+
+        print(f"Iniciando node {self.id}")
 
         # Se inscreve no servidor de nomes e aguarda requisições
         daemon = Daemon()
         ns = locate_ns()
         uri = daemon.register(self)
-        ns.register(f"bigfs.node_{self.id}", uri)
+        ns.register(f"bigfs.node.{self.id}", uri)
         daemon.requestLoop()
 
     
     def loadId(self):
-        with open("id.txt", "r") as f:
+        print("Carregando ID")
+        if not Path(self.ID_CACHE_PATH).exists():
+            print("Arquivo ID não existe")
+            return None
+        print("Arquivo ID existe. Carregando ID")
+        with open(self.ID_CACHE_PATH, "r") as f:
             id = int(f.read())
+        print(f"ID é {id}")
         return id
 
     
     def saveId(self):
-        with open("id.txt", "w") as f:
+        with open(self.ID_CACHE_PATH, "w") as f:
             f.write(str(self.id))
 
 
     def cadastrar_no_cluster(self):
+        print("Se cadastrando no cluster")
         with Proxy("PYRONAME:bigfs.master") as master:
             self.id = master.registrar_nova_maquina()
             self.saveId()
@@ -87,7 +97,7 @@ class Server:
         return True
 
 
-    def cp(self, nome_arquivo, arquivo_data_package):
+    def cp(self, nome_arquivo, arquivo_data_package, hash_esperado):
         # Verifica se arquivo existe
         if not self.verificar_cp(nome_arquivo):
             raise ErroArquivoJaExiste 
@@ -108,6 +118,11 @@ class Server:
         # Registrar no indice
         with Index() as index:
             index.adicionar(nome_arquivo, hash)
+
+    def cp_mock(self, nome_arquivo, arquivo_data_pkg, hash_arquivo):
+        print("Salvando o arquivo localmente")
+        print(f"Arquivo: {nome_arquivo}")
+        print(f"Hash: {hash_arquivo}")
 
 
     def verificar_rm(self, nome_arquivo):

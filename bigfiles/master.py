@@ -1,7 +1,8 @@
-from Pyro5.api import expose, Daemon, locate_ns
+from Pyro5.api import Proxy, expose, Daemon, locate_ns
 from sqlalchemy import desc
 from bigfiles.database import iniciar_db, session
-from bigfiles.models import Maquina
+from bigfiles.erros import ErroMaquinasNaoEncontradas
+from bigfiles.models import Arquivo, Maquina, Shard
 
 
 @expose
@@ -22,14 +23,39 @@ class Master:
 
 
     def registrar_nova_maquina(self):
-        # Cria uma nóva máquina no banco de dados
-        # Pega o id dessa última máquina criada
-        # E retorna o id
+        """
+        Função chamada pelo Node para se registrar ao cluster.
+
+        Ao chamar essa função, é criado um registro no banco de dados de uma nova máquina
+        e é retornado o id dessa nova máquina para que o node guarde. Dessa forma o node
+        deve se registrar no servidor de nomes usando o ID que recebeu.
+
+        É possível fazer uma lógica de "recadastro" caso haja algum problema com o registro. 
+        Situação: o node tem um ID que por algum erro, não está mais registrado no banco de dados.
+        Solução, o Node envia o ID, caso não esteja cadastrado, o Master cria um novo registro com 
+        esse ID e eles começam um protocolo de sincronização. O Node "conta" ao Master quais 
+        shards ele possui.
+
+        A partir dessa situação, também é possível fazer um mecanismo de: Master percebe que alguns 
+        dados do Node estão desatualizados e atualiza eles.
+
+        :return: id
+        """
+        print("Registrando nova maquina no cluster")
         ultima_maquina = session.query(Maquina).order_by(desc(Maquina.id)).first()
-        novo_id = ultima_maquina.id + 1 if ultima_maquina else 0
+
+        if not ultima_maquina:
+            novo_id = 0
+        else:
+            novo_id = ultima_maquina.id + 1
+
+        print(f"Novo id: {novo_id}")
+
         nova_maquina = Maquina(id=novo_id, endereco=f"bigfs.node.{novo_id}")
         session.add(nova_maquina)
         session.commit()
+
+        print(f"Máquina com id {novo_id} registrada com sucesso")
         return novo_id
 
 
@@ -53,6 +79,29 @@ class Master:
         print(f"Hash fragmento: {hash_fragmento}")
         print(f"Ordem: {ordem}")
 
+        # Registrar no banco de dados o arquivo caso não exista
+        print("Registrando arquivo no banco de dados")
+        arquivo = self._registrar_arquivo(hash_arquivo, nome_arquivo, tamanho=None)
+
+        # Salvar no banco de dados o novo shard
+        print("Registrando shard no banco de dados")
+        novo_shard = Shard(hash=hash_fragmento, ordem=ordem, id_arquivo=arquivo.id)
+        session.add(novo_shard)
+
+        # Escolher no máximo 3 máquinas para replicar o fragmento
+        maquinas_destino = self._maquinas_destino()
+        print(f"Maquinas selecionadas: {maquinas_destino}")
+
+        # Enviar uma réplica para cada máquina
+        print("Enviando réplicas do fragmento aos nós")
+        for maquina in maquinas_destino:
+            with Proxy(f"PYRONAME:{maquina.endereco}") as node:
+                node.cp_mock(nome_arquivo, fragmento_data, hash_fragmento)
+            novo_shard.maquinas.append(maquina)
+        session.commit()
+
+        return True
+
 
 
     def listar_arquivos(self):
@@ -65,4 +114,25 @@ class Master:
 
     def baixar_arquivo(self, nome_arquivo):
         pass
+
+
+    def _maquinas_destino(self) -> list[Maquina]:
+        """ Seleciona no máximo as 3 melhores máquinas para se realizar o upload do fragmento"""
+        maquinas = session.query(Maquina).all()
+        if not maquinas:
+            raise ErroMaquinasNaoEncontradas
+        return maquinas
+
+
+    def _registrar_arquivo(self, hash, nome, tamanho):    # TODO: Tamanho do arquivo
+        tamanho = 0
+        # Se arquivo já existe, não registre novamente
+        arquivo = session.query(Arquivo).filter_by(nome=nome).first()
+        if arquivo:
+            return arquivo
+        arquivo = Arquivo(hash=hash, nome=nome, tamanho=tamanho)
+        session.add(arquivo)
+        session.commit()
+        return arquivo
+
 
