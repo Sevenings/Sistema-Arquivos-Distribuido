@@ -7,8 +7,12 @@ from Pyro5.api import Daemon, locate_ns
 if __name__ == '__main__':
     mode = sys.argv[1]
 
-    if mode == 'server':
-        Server().setup()
+    if mode == 'master':
+        master = Master()
+        master.start()
+    elif mode == 'server':
+        server = Server()
+        server.start()
     elif mode == 'client':
         argumentos = sys.argv[2:]
         client = Client()

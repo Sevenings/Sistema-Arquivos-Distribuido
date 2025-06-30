@@ -3,6 +3,7 @@ from sqlalchemy import desc
 from bigfiles.database import iniciar_db, session
 from bigfiles.erros import ErroMaquinasNaoEncontradas
 from bigfiles.models import Arquivo, Maquina, Shard
+from bigfiles.logs import registra_logs
 
 
 @expose
@@ -56,6 +57,8 @@ class Master:
         session.commit()
 
         print(f"Máquina com id {novo_id} registrada com sucesso")
+        registra_logs("REGISTRO NOVA MÁQUINA AO CLUSTER", f"Máquina com id {novo_id} registrada com sucesso")
+        
         return novo_id
 
 
@@ -100,20 +103,111 @@ class Master:
             novo_shard.maquinas.append(maquina)
         session.commit()
 
+        registra_logs("UPLOAD DE FRAGMENTO", f"Fragmento {hash_fragmento} enviado para {maquinas_destino}")
+
         return True
 
 
 
     def listar_arquivos(self):
-        pass
+        """
+        Lista todos os arquivos registrados no sistema.
+        :return: lista de dicionários com id e nome de cada arquivo
+        """
+        arquivos = session.query(Arquivo).all()
+        resultados = []
+        for arq in arquivos:
+            resultados.append({'id': arq.id, 'nome': arq.nome})
+            print(f"[{arq.id}] {arq.nome}")
+        return resultados
 
 
     def remover_arquivo(self, nome_arquivo: str):
-        pass
+        """
+        Remove um arquivo e todos os seus shards do sistema:
+        1. Busca o Arquivo pelo nome.
+        2. Para cada shard, solicita a remoção em cada nó.
+        3. Deleta os shards e por fim o registro do Arquivo.
+        :param nome_arquivo: nome do arquivo a remover
+        :return: True se removido, False se não encontrado
+        """
+        try:
+            arquivo = session.query(Arquivo).filter_by(nome=nome_arquivo).one()
+        except Exception:
+            print(f"Arquivo '{nome_arquivo}' não encontrado.")
+            return False
+
+        print(f"Removendo arquivo '{nome_arquivo}' (ID {arquivo.id}) e seus shards…")
+        for shard in arquivo.shards:
+            print(f" • Shard {shard.hash} (ordem {shard.ordem}):")
+            for maquina in shard.maquinas:
+                print(f"   → removendo réplica no nó {maquina.endereco}")
+                with Proxy(f"PYRONAME:{maquina.endereco}") as node:
+                    # supondo que exista um método rm_mock ou delete_fragment
+                    node.rm_mock(shard.hash)
+            # depois de remover as réplicas, desvincula máquinas
+            shard.maquinas.clear()
+            session.delete(shard)
+
+        session.delete(arquivo)
+        session.commit()
+
+        registra_logs("REMOÇÃO DE ARQUIVO", f"Arquivo {nome_arquivo} removido com sucesso")
+
+        print("Remoção concluída.")
+        return True
 
 
-    def baixar_arquivo(self, nome_arquivo):
-        pass
+    def baixar_arquivo(self, nome_arquivo: str) -> bytes:
+        """
+        Reconstroi um arquivo a partir dos seus shards:
+        1. Busca o Arquivo pelo nome.
+        2. Recupera todos os shards ordenados pela ordem original.
+        3. Para cada shard, faz download do fragmento do primeiro nó disponível.
+        4. Concatena todos os bytes e retorna o conteúdo completo.
+        :param nome_arquivo: nome do arquivo a baixar
+        :return: bytes com o arquivo reconstruído
+        """
+        try:
+            arquivo = session.query(Arquivo).filter_by(nome=nome_arquivo).one()
+        except Exception:
+            raise FileNotFoundError(f"Arquivo '{nome_arquivo}' não encontrado no sistema.")
+
+        print(f"Arquivo encontrado: {arquivo.nome} com {len(arquivo.shards)} shards")
+        for shard in arquivo.shards:
+            print(f"Shard {shard.id}: ordem={shard.ordem} (tipo: {type(shard.ordem)})")
+
+        def safe_ordem(shard):
+            try:
+                if shard.ordem is None or str(shard.ordem).strip() == "":
+                    return 0
+                return int(str(shard.ordem).strip())
+            except Exception as e:
+                print(f'AVISO: ordem inválida para shard {shard.id}: {shard.ordem}, usando 0 ({e})')
+                return 0
+
+        shards = sorted(arquivo.shards, key=safe_ordem)
+        conteudo = bytearray()
+
+        for shard in shards:
+            dados_fragmento = None
+            print(f"Baixando shard {shard.hash} (ordem {shard.ordem})…")
+            for maquina in shard.maquinas:
+                try:
+                    with Proxy(f"PYRONAME:{maquina.endereco}") as node:
+                        dados_fragmento = node.get_mock(shard.hash)
+                        print(f" • obtido de {maquina.endereco}")
+                        break
+                except Exception as e:
+                    print(f"   erro ao baixar de {maquina.endereco}: {e}")
+            if dados_fragmento is None:
+                raise IOError(f"Não foi possível baixar o shard {shard.hash} de nenhum nó.")
+            conteudo.extend(dados_fragmento)
+        
+        registra_logs("BAIXAR ARQUIVO", f"Arquivo {nome_arquivo} baixado com sucesso")
+
+        print(f"Download de '{nome_arquivo}' concluído ({len(conteudo)} bytes).")
+        return bytes(conteudo)
 
 
     def _maquinas_destino(self) -> list[Maquina]:
@@ -133,6 +227,6 @@ class Master:
         arquivo = Arquivo(hash=hash, nome=nome, tamanho=tamanho)
         session.add(arquivo)
         session.commit()
+
+        registra_logs("REGISTRO DE ARQUIVO", f"Arquivo {nome} registrado com sucesso")
         return arquivo
-
-
