@@ -64,12 +64,13 @@ class Index:
             raise Exception(f'Arquivo {nome_arquivo} já existe com esse nome')
 
 
-    def adicionar(self, nome_arquivo: str, hash: str):
+    def adicionar(self, nome_arquivo: str, hash: str, ordem: int):
         self.__conferir_existencia(nome_arquivo, False)
 
-        self.index[nome_arquivo] = {
+        self.index[f"{nome_arquivo}_{ordem}"] = {
                 'hash': hash, 
-                'path': f'{self.path_files_folder}/{nome_arquivo}'
+                'path': f'{self.path_files_folder}/{nome_arquivo}_{ordem}',
+                'ordem': ordem
             }
 
 

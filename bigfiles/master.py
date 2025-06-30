@@ -1,7 +1,7 @@
 from Pyro5.api import Proxy, expose, Daemon, locate_ns
 from sqlalchemy import desc
 from bigfiles.database import iniciar_db, session
-from bigfiles.erros import ErroMaquinasNaoEncontradas
+from bigfiles.erros.erros import ErroArquivoNaoExiste, ErroMaquinasNaoEncontradas
 from bigfiles.models import Arquivo, Maquina, Shard
 
 
@@ -96,7 +96,10 @@ class Master:
         print("Enviando réplicas do fragmento aos nós")
         for maquina in maquinas_destino:
             with Proxy(f"PYRONAME:{maquina.endereco}") as node:
-                node.cp_mock(nome_arquivo, fragmento_data, hash_fragmento)
+                node.upload_fragmento(nome_arquivo=nome_arquivo,
+                        arquivo_data_pkg=fragmento_data,
+                        ordem=ordem,
+                        hash_esperado=hash_fragmento)
             novo_shard.maquinas.append(maquina)
         session.commit()
 
@@ -105,15 +108,39 @@ class Master:
 
 
     def listar_arquivos(self):
-        pass
+        arquivos = session.query(Arquivo).order_by(Arquivo.nome).all()
+        return [ a.nome for a in arquivos ]
 
 
     def remover_arquivo(self, nome_arquivo: str):
-        pass
+        # Verificar se o arquivo existe
+        arquivo = session.query(Arquivo).filter_by(nome=nome_arquivo).first()
+        if not arquivo:
+            raise ErroArquivoNaoExiste(nome_arquivo)
+
+        # Encontrar os shards do arquivo
+        shards = arquivo.shards
+
+        # Remover os shards de todas as máquinas
+        for shard in shards:
+            for maquina in shard.maquinas:
+                with Proxy(f"PYRONAME:{maquina.endereco}") as node:
+                    node.rm(nome_arquivo, shard.ordem)
+                maquina.shards.remove(shard)
+
+        # Remover arquivo e seus shards do banco de dados
+        session.delete(arquivo)
+        session.commit()
 
 
     def baixar_arquivo(self, nome_arquivo):
         pass
+
+
+    def possui(self, nome_arquivo):
+        if session.query(Arquivo).filter_by(nome=nome_arquivo).first():
+            return True
+        return False
 
 
     def _maquinas_destino(self) -> list[Maquina]:
