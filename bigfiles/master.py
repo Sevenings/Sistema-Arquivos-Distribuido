@@ -1,7 +1,7 @@
 from Pyro5.api import Proxy, expose, Daemon, locate_ns
 from sqlalchemy import desc
 from bigfiles.database import iniciar_db, session
-from bigfiles.erros import ErroMaquinasNaoEncontradas
+from bigfiles.erros.erros import ErroArquivoNaoExiste, ErroMaquinasNaoEncontradas
 from bigfiles.models import Arquivo, Maquina, Shard
 from bigfiles.logs import registra_logs
 
@@ -99,7 +99,10 @@ class Master:
         print("Enviando réplicas do fragmento aos nós")
         for maquina in maquinas_destino:
             with Proxy(f"PYRONAME:{maquina.endereco}") as node:
-                node.cp_mock(nome_arquivo, fragmento_data, hash_fragmento)
+                node.upload_fragmento(nome_arquivo=nome_arquivo,
+                        arquivo_data_pkg=fragmento_data,
+                        ordem=ordem,
+                        hash_esperado=hash_fragmento)
             novo_shard.maquinas.append(maquina)
         session.commit()
 
@@ -123,42 +126,30 @@ class Master:
 
 
     def remover_arquivo(self, nome_arquivo: str):
-        """
-        Remove um arquivo e todos os seus shards do sistema:
-        1. Busca o Arquivo pelo nome.
-        2. Para cada shard, solicita a remoção em cada nó.
-        3. Deleta os shards e por fim o registro do Arquivo.
-        :param nome_arquivo: nome do arquivo a remover
-        :return: True se removido, False se não encontrado
-        """
-        try:
-            arquivo = session.query(Arquivo).filter_by(nome=nome_arquivo).one()
-        except Exception:
-            print(f"Arquivo '{nome_arquivo}' não encontrado.")
-            return False
+        # Verificar se o arquivo existe
+        arquivo = session.query(Arquivo).filter_by(nome=nome_arquivo).first()
+        if not arquivo:
+            raise ErroArquivoNaoExiste(nome_arquivo)
 
-        print(f"Removendo arquivo '{nome_arquivo}' (ID {arquivo.id}) e seus shards…")
-        for shard in arquivo.shards:
-            print(f" • Shard {shard.hash} (ordem {shard.ordem}):")
+        # Encontrar os shards do arquivo
+        shards = arquivo.shards
+
+        # Remover os shards de todas as máquinas
+        for shard in shards:
             for maquina in shard.maquinas:
-                print(f"   → removendo réplica no nó {maquina.endereco}")
                 with Proxy(f"PYRONAME:{maquina.endereco}") as node:
-                    # supondo que exista um método rm_mock ou delete_fragment
-                    node.rm_mock(shard.hash)
-            # depois de remover as réplicas, desvincula máquinas
-            shard.maquinas.clear()
-            session.delete(shard)
+                    node.rm(nome_arquivo, shard.ordem)
+                maquina.shards.remove(shard)
 
+        # Remover arquivo e seus shards do banco de dados
         session.delete(arquivo)
         session.commit()
 
+        # Registrar no log
         registra_logs("REMOÇÃO DE ARQUIVO", f"Arquivo {nome_arquivo} removido com sucesso")
 
-        print("Remoção concluída.")
-        return True
 
-
-    def baixar_arquivo(self, nome_arquivo: str) -> bytes:
+    def baixar_arquivo(self, nome_arquivo):
         """
         Reconstroi um arquivo a partir dos seus shards:
         1. Busca o Arquivo pelo nome.
@@ -208,6 +199,12 @@ class Master:
 
         print(f"Download de '{nome_arquivo}' concluído ({len(conteudo)} bytes).")
         return bytes(conteudo)
+
+
+    def possui(self, nome_arquivo):
+        if session.query(Arquivo).filter_by(nome=nome_arquivo).first():
+            return True
+        return False
 
 
     def _maquinas_destino(self) -> list[Maquina]:

@@ -7,8 +7,16 @@ from bigfiles.database import Base
 # Relação N x M entre Máquinas e Shards
 contem_table = Table(
     'contem', Base.metadata,
-    Column('id_maquina',   ForeignKey('maquinas.id'),   primary_key=True),
-    Column('id_shard',  ForeignKey('shards.id'),  primary_key=True)
+    Column(
+        'id_maquina',
+        ForeignKey('maquinas.id', ondelete="CASCADE"),
+        primary_key=True
+    ),
+    Column(
+        'id_shard',
+        ForeignKey('shards.id', ondelete="CASCADE"),
+        primary_key=True
+    )
 )
 
 
@@ -36,7 +44,11 @@ class Shard(Base):
     id_arquivo = Column(Integer, ForeignKey('arquivos.id'))
 
     arquivo = relationship('Arquivo', back_populates='shards')
-    maquinas = relationship('Maquina', secondary=contem_table, back_populates='shards')
+    maquinas = relationship(
+        'Maquina',
+        secondary=contem_table,
+        back_populates='shards'
+    )
 
 
 class Arquivo(Base):
@@ -47,5 +59,10 @@ class Arquivo(Base):
     nome = Column(String(256), unique=True)
     tamanho = Column(Integer)
 
-    shards = relationship('Shard', back_populates='arquivo')
+    shards = relationship(
+        'Shard',
+        back_populates='arquivo',
+        cascade="all, delete-orphan",
+        passive_deletes=True
+    )
 

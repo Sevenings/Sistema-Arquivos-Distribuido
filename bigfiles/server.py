@@ -1,10 +1,10 @@
-from Pyro5.api import expose, behavior, Daemon, locate_ns, Proxy
+from Pyro5.api import expose, Daemon, locate_ns, Proxy
 import os
 from pathlib import Path
 import json
 
 from .hash import calcular_sha256_bytes
-from .erros import ErroArquivoJaExiste, ErroArquivoNaoExiste
+from .erros.erros import ErroArquivoJaExiste, ErroArquivoNaoExiste
 import base64
 
 from .index import Index
@@ -35,6 +35,9 @@ class Server:
             self.cadastrar_no_cluster()
 
         print(f"Iniciando node {self.id}")
+
+        # Inicia o index.json
+        self.setup()
 
         # Se inscreve no servidor de nomes e aguarda requisições
         daemon = Daemon()
@@ -97,33 +100,27 @@ class Server:
         return True
 
 
-    def cp(self, nome_arquivo, arquivo_data_package, hash_esperado):
+    def upload_fragmento(self, nome_arquivo, arquivo_data_pkg, ordem, hash_esperado):
         # Verifica se arquivo existe
         if not self.verificar_cp(nome_arquivo):
             raise ErroArquivoJaExiste 
 
         # Extrai os dados do arquivo
-        encoding = arquivo_data_package.get('encoding')
-        data = arquivo_data_package.get('data')
+        encoding = arquivo_data_pkg.get('encoding')
+        data = arquivo_data_pkg.get('data')
         if encoding == 'base64':
             data = base64.b64decode(data)
 
         # Calcular o Hash
         hash = calcular_sha256_bytes(data)
 
-        # Salvar o arquivo
-        with open(f"{FILES_FOLDER}/{nome_arquivo}", 'wb') as file:
+        # Salvar o fragmento
+        with open(f"{FILES_FOLDER}/{nome_arquivo}_{ordem}", 'wb') as file:
             file.write(data)
 
         # Registrar no indice
         with Index() as index:
-            index.adicionar(nome_arquivo, hash)
-
-    def cp_mock(self, nome_arquivo, arquivo_data_pkg, hash_arquivo):
-        print("Salvando o arquivo localmente")
-        print(f"Arquivo: {nome_arquivo}")
-        print(f"Hash: {hash_arquivo}")
-
+            index.adicionar(nome_arquivo, hash, ordem)
 
     def verificar_rm(self, nome_arquivo):
         with Index() as index:
@@ -132,20 +129,20 @@ class Server:
         return True
 
 
-    def rm(self, nome_arquivo):
+    def rm(self, nome_fragmento, ordem):
         # Verifica se arquivo existe
-        if not self.verificar_rm(nome_arquivo):
+        if not self.verificar_rm(f"{nome_fragmento}_{ordem}"):
             raise ErroArquivoNaoExiste
 
         with Index() as index:
-            path_arquivo = index.localizacao(nome_arquivo)
+            path_arquivo = index.localizacao(f"{nome_fragmento}_{ordem}")
 
         # Apagar arquivo
         os.remove(path_arquivo)
 
         # Registrar no índice
         with Index() as index:
-            index.deletar(nome_arquivo)
+            index.deletar(f"{nome_fragmento}_{ordem}")
 
 
     def verificar_get(self, nome_arquivo):
