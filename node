@@ -1,0 +1,6 @@
+#!.venv/bin/python
+
+import sys
+from bigfiles.node import Node
+
+Node().start()

@@ -18,7 +18,7 @@ FILES_FOLDER = 'files'
 
 
 @expose
-class Server:
+class Node:
     def __init__(self, address='localhost', port=8989, index_file='index.json', files_folder='files'):
         self.ADDR = address
         self.PORT = port
