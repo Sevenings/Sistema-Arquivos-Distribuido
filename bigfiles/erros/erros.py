@@ -42,6 +42,10 @@ class ErroArquivoJaExiste(Exception):
 class ErroPoucaMemoria(BaseException):
     pass
 
+@pyro_serializable_exc
+class ErroHashInvalido(BaseException):
+    pass
+
 
 # Erros Master
 # -----------------------

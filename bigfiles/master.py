@@ -1,9 +1,14 @@
+import os
+import time
 from Pyro5.api import Proxy, expose, Daemon, locate_ns
 from sqlalchemy import desc
 from bigfiles.database import iniciar_db, session
-from bigfiles.erros.erros import ErroArquivoNaoExiste, ErroMaquinasNaoEncontradas
+from bigfiles.erros.erros import ErroArquivoNaoExiste, ErroHashInvalido, ErroMaquinasNaoEncontradas
 from bigfiles.models import Arquivo, Maquina, Shard
 from bigfiles.logs import registra_logs
+from datetime import datetime, timedelta
+
+from config import config
 
 
 @expose
@@ -99,14 +104,24 @@ class Master:
         print("Enviando réplicas do fragmento aos nós")
         for maquina in maquinas_destino:
             with Proxy(f"PYRONAME:{maquina.endereco}") as node:
-                node.upload_fragmento(nome_arquivo=nome_arquivo,
-                        arquivo_data_pkg=fragmento_data,
-                        ordem=ordem,
-                        hash_esperado=hash_fragmento)
-            novo_shard.maquinas.append(maquina)
-        session.commit()
+                tentativas = 0
+                while tentativas < 3:
+                    try:
+                        node.upload_fragmento(nome_arquivo=nome_arquivo,
+                                arquivo_data_pkg=fragmento_data,
+                                ordem=ordem,
+                                hash_esperado=hash_fragmento)
+                        novo_shard.maquinas.append(maquina)
+                        registra_logs("UPLOAD DE FRAGMENTO", f"Fragmento {hash_fragmento} enviado para {maquina.endereco}")
+                        break
+                    except ErroHashInvalido as e:
+                        tentativas += 1
+                        registra_logs("UPLOAD DE FRAGMENTO", f"Erro ao enviar fragmento para {maquina.endereco}: {e}")
+                        time.sleep(1)
+                if tentativas == 3:
+                    raise ErroHashInvalido
 
-        registra_logs("UPLOAD DE FRAGMENTO", f"Fragmento {hash_fragmento} enviado para {maquinas_destino}")
+        session.commit()
 
         return True
 
@@ -159,46 +174,22 @@ class Master:
         :param nome_arquivo: nome do arquivo a baixar
         :return: bytes com o arquivo reconstruído
         """
-        try:
-            arquivo = session.query(Arquivo).filter_by(nome=nome_arquivo).one()
-        except Exception:
-            raise FileNotFoundError(f"Arquivo '{nome_arquivo}' não encontrado no sistema.")
-
-        print(f"Arquivo encontrado: {arquivo.nome} com {len(arquivo.shards)} shards")
-        for shard in arquivo.shards:
-            print(f"Shard {shard.id}: ordem={shard.ordem} (tipo: {type(shard.ordem)})")
-
-        def safe_ordem(shard):
-            try:
-                if shard.ordem is None or str(shard.ordem).strip() == "":
-                    return 0
-                return int(str(shard.ordem).strip())
-            except Exception as e:
-                print(f'AVISO: ordem inválida para shard {shard.id}: {shard.ordem}, usando 0 ({e})')
-                return 0
-
-        shards = sorted(arquivo.shards, key=safe_ordem)
-        conteudo = bytearray()
-
-        for shard in shards:
-            dados_fragmento = None
-            print(f"Baixando shard {shard.hash} (ordem {shard.ordem})…")
-            for maquina in shard.maquinas:
-                try:
-                    with Proxy(f"PYRONAME:{maquina.endereco}") as node:
-                        dados_fragmento = node.get_mock(shard.hash)
-                        print(f" • obtido de {maquina.endereco}")
-                        break
-                except Exception as e:
-                    print(f"   erro ao baixar de {maquina.endereco}: {e}")
-            if dados_fragmento is None:
-                raise IOError(f"Não foi possível baixar o shard {shard.hash} de nenhum nó.")
-            conteudo.extend(dados_fragmento)
+        arquivo = session.query(Arquivo).filter_by(nome=nome_arquivo).first()
+        if not arquivo:
+            raise ErroArquivoNaoExiste(nome_arquivo)
         
-        registra_logs("BAIXAR ARQUIVO", f"Arquivo {nome_arquivo} baixado com sucesso")
+        with open(f"temp/{nome_arquivo}", "ab") as file:
+            shards = arquivo.shards
+            for shard in shards:
+                maquina = self.escolher_maquina_baixar_shard(shard.maquinas)
+                with Proxy(f"PYRONAME:{maquina.endereco}") as node:
+                    data = node.baixar_fragmento(nome_arquivo, shard.ordem, file)
+                    file.write(data)
+        
+        # enviar para o cliente
+        envia_arquivo_cliente(f"temp/{nome_arquivo}")
 
-        print(f"Download de '{nome_arquivo}' concluído ({len(conteudo)} bytes).")
-        return bytes(conteudo)
+        os.remove(f"temp/{nome_arquivo}")
 
 
     def possui(self, nome_arquivo):
@@ -209,7 +200,10 @@ class Master:
 
     def _maquinas_destino(self) -> list[Maquina]:
         """ Seleciona no máximo as 3 melhores máquinas para se realizar o upload do fragmento"""
-        maquinas = session.query(Maquina).all()
+        # Encontra as 3 melhores máquinas que estão vivas
+        maquinas = session.query(Maquina).filter(
+            datetime.now() - Maquina.ultimo_heartbeat < timedelta(seconds=config.TEMPO_HEARTBEAT)
+        ).order_by(Maquina.espaco_livre.desc()).limit(3).all()
         if not maquinas:
             raise ErroMaquinasNaoEncontradas
         return maquinas
@@ -227,3 +221,13 @@ class Master:
 
         registra_logs("REGISTRO DE ARQUIVO", f"Arquivo {nome} registrado com sucesso")
         return arquivo
+
+    def heartbeat(self, id, cpu, espaco_livre):
+        maquina = session.query(Maquina).filter_by(id=id).first()
+        ultimo_heartbeat = datetime.now()
+        if not maquina:
+            raise ErroMaquinasNaoEncontradas
+        maquina.cpu = cpu
+        maquina.espaco_livre = espaco_livre
+        maquina.ultimo_heartbeat = ultimo_heartbeat
+        session.commit()

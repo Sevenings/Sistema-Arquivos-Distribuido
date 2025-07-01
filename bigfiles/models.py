@@ -1,5 +1,6 @@
 from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, Table
 from sqlalchemy.orm import relationship
+from datetime import datetime, timedelta
 
 from bigfiles.database import Base
 
@@ -33,6 +34,15 @@ class Maquina(Base):
 
     def __repr__(self) -> str:
         return f"<Maquina {self.endereco}>"
+
+    def viva(self):
+        if self.ultimo_heartbeat is None:
+            return False
+        
+        tempo_heartbeat = 60  # segundos - tempo padrão de heartbeat
+        if datetime.now() - self.ultimo_heartbeat > timedelta(seconds=tempo_heartbeat):
+            return False
+        return True
 
 
 class Shard(Base):

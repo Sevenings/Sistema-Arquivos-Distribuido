@@ -1,10 +1,16 @@
+from datetime import datetime
 from Pyro5.api import expose, Daemon, locate_ns, Proxy
 import os
 from pathlib import Path
 import json
+import time
+import psutil
+import threading
+
+from config import config
 
 from .hash import calcular_sha256_bytes
-from .erros.erros import ErroArquivoJaExiste, ErroArquivoNaoExiste
+from .erros.erros import ErroArquivoJaExiste, ErroArquivoNaoExiste, ErroHashInvalido
 import base64
 
 from .index import Index
@@ -38,6 +44,10 @@ class Server:
 
         # Inicia o index.json
         self.setup()
+
+        # Thread para os heartbeats
+        self.heartbeat_thread = threading.Thread(target=self.heartbeat, daemon=True)
+        self.heartbeat_thread.start()
 
         # Se inscreve no servidor de nomes e aguarda requisições
         daemon = Daemon()
@@ -114,6 +124,9 @@ class Server:
         # Calcular o Hash
         hash = calcular_sha256_bytes(data)
 
+        if hash != hash_esperado:
+            raise ErroHashInvalido
+
         # Salvar o fragmento
         with open(f"{FILES_FOLDER}/{nome_arquivo}_{ordem}", 'wb') as file:
             file.write(data)
@@ -171,12 +184,18 @@ class Server:
             print(lista_arquivos)
         return lista_arquivos
 
-        
-def resposta(status, data=None, error_id=None) -> bytes:
-    msg = {'status': status, 'data': data, 'id': error_id}
-    print(msg)
-    return (json.dumps(msg)).encode()
 
+    def heartbeat(self):
+        print("Iniciando heartbeats")
+        tempo_heartbeat = config.TEMPO_HEARTBEAT
+        while True:
+            time.sleep(tempo_heartbeat)
+            agora = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            print(f"[{agora}] Máquina {self.id} viva")
+            cpu = psutil.cpu_percent(interval=1)
+            espaco_livre = psutil.disk_usage('/').free
+            with Proxy("PYRONAME:bigfs.master") as master:
+                master.heartbeat(self.id, cpu, espaco_livre)
 
 exemplo_comando = {
         'operacao': 'adicionar',

@@ -10,7 +10,7 @@ def registra_logs(nome_acao: str, texto: str, pasta_logs: str = 'logs', arquivo_
     
     # Timestamp da operação
     ts = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    
+
     # Linha que será escrita
     linha = f'[{ts}] [{nome_acao}] {texto}\n'
     
