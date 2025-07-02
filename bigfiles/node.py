@@ -179,7 +179,6 @@ class Node:
         return True
 
 
-    def get(self, nome_arquivo, ordem=None):
     def baixar_fragmento(self, nome_arquivo, ordem=None):
         """
         Envia o arquivo solicitado para o cliente
