@@ -130,13 +130,11 @@ class Master:
     def listar_arquivos(self):
         """
         Lista todos os arquivos registrados no sistema.
-        :return: lista de dicionários com id e nome de cada arquivo
+        :return: lista com nome de cada arquivo
         """
         arquivos = session.query(Arquivo).all()
-        resultados = []
-        for arq in arquivos:
-            resultados.append({'id': arq.id, 'nome': arq.nome})
-            print(f"[{arq.id}] {arq.nome}")
+        resultados = [ arquivo.nome for arquivo in arquivos ]
+        print(resultados)
         return resultados
 
 
