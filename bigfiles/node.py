@@ -216,9 +216,6 @@ class Node:
         # A cada tanto tempo, envia u heartbeat para o master
         while True:
 
-            # Aguarda o tempo do heartbeat
-            time.sleep(tempo_heartbeat)
-
             # Debug: Printa que a máquina está viva
             agora = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             print(f"[{agora}] Máquina {self.id} viva")
@@ -230,6 +227,10 @@ class Node:
             # Envia o heartbeat para o master
             with Proxy("PYRONAME:bigfs.master") as master:
                 master.heartbeat(self.id, cpu, espaco_livre)
+
+            # Aguarda o tempo do heartbeat
+            time.sleep(tempo_heartbeat)
+
 
 
 exemplo_comando = {
