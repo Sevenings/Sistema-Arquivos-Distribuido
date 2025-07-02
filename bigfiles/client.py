@@ -41,6 +41,9 @@ class Client:
 
     def rm(self, nome_arquivo):
         with Proxy("PYRONAME:bigfs.master") as master:
+            if not master.possui(nome_arquivo):
+                raise ErroArquivoNaoExiste(nome_arquivo)
+        with Proxy("PYRONAME:bigfs.master") as master:
             master.remover_arquivo(nome_arquivo)
 
 
