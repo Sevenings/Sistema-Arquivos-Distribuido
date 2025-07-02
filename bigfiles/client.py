@@ -23,14 +23,14 @@ class Client:
         hash_arquivo = calcular_sha256(path_arquivo)
 
         # Conecta no servidor de arquivos
-        with Proxy("PYRONAME:bigfs.master") as file_server:
-            if file_server.possui(nome_arquivo):
+        with Proxy("PYRONAME:bigfs.master") as master:
+            if master.possui(nome_arquivo):
                 raise ErroArquivoJaExiste(nome_arquivo)
 
             # Fragmenta o arquivo e envia cada fragmento
             for i, fragmento in fragmentar(path_arquivo):
                 hash_fragmento = calcular_sha256_bytes(fragmento)
-                file_server.upload_fragmento(
+                master.upload_fragmento(
                     nome_arquivo=nome_arquivo,
                     hash_arquivo=hash_arquivo,
                     hash_fragmento=hash_fragmento,
@@ -40,13 +40,13 @@ class Client:
 
 
     def rm(self, nome_arquivo):
-        with Proxy("PYRONAME:bigfs.master") as file_server:
-            file_server.remover_arquivo(nome_arquivo)
+        with Proxy("PYRONAME:bigfs.master") as master:
+            master.remover_arquivo(nome_arquivo)
 
 
     def get(self, nome_arquivo):
-        with Proxy("PYRONAME:bigfs.master") as file_server:
-            data = file_server.get(nome_arquivo)
+        with Proxy("PYRONAME:bigfs.master") as master:
+            master.get(nome_arquivo)
 
         encoding = data.get('encoding')
         if encoding == 'base64':
@@ -58,8 +58,8 @@ class Client:
   
 
     def ls(self):
-        with Proxy("PYRONAME:bigfs.master") as file_server:
-            resposta = file_server.listar_arquivos()
+        with Proxy("PYRONAME:bigfs.master") as master:
+            resposta = master.listar_arquivos()
             print(resposta)
             return resposta
 
