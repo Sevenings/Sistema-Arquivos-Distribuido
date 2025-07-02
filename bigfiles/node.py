@@ -165,7 +165,10 @@ class Node:
         return True
 
 
-    def get(self, nome_arquivo):
+    def get(self, nome_arquivo, ordem=None):
+        """
+        Envia o arquivo solicitado para o cliente
+        """
         if not self.verificar_get(nome_arquivo):
             raise ErroArquivoNaoExiste
 
@@ -179,6 +182,11 @@ class Node:
 
 
     def ls(self):
+        """ 
+        Retorna a lista dos arquivos disponíveis no nó 
+
+        :return: lista de nomes de arquivos 
+        """
         with Index() as index:
             lista_arquivos = index.listar()
             print(lista_arquivos)
@@ -186,16 +194,29 @@ class Node:
 
 
     def heartbeat(self):
+        """ Thread que envia heartbeats para o master """
+
         print("Iniciando heartbeats")
         tempo_heartbeat = config.TEMPO_HEARTBEAT
+
+        # A cada tanto tempo, envia u heartbeat para o master
         while True:
+
+            # Aguarda o tempo do heartbeat
             time.sleep(tempo_heartbeat)
+
+            # Debug: Printa que a máquina está viva
             agora = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             print(f"[{agora}] Máquina {self.id} viva")
+
+            # Coleta informações do sistema
             cpu = psutil.cpu_percent(interval=1)
             espaco_livre = psutil.disk_usage('/').free
+
+            # Envia o heartbeat para o master
             with Proxy("PYRONAME:bigfs.master") as master:
                 master.heartbeat(self.id, cpu, espaco_livre)
+
 
 exemplo_comando = {
         'operacao': 'adicionar',
