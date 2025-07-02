@@ -172,22 +172,42 @@ class Master:
         :param nome_arquivo: nome do arquivo a baixar
         :return: bytes com o arquivo reconstruído
         """
+        # Encontra o arquivo a ser baixado
         arquivo = session.query(Arquivo).filter_by(nome=nome_arquivo).first()
         if not arquivo:
             raise ErroArquivoNaoExiste(nome_arquivo)
+
+        print(f"Baixando arquivo: {nome_arquivo}")
         
-        with open(f"temp/{nome_arquivo}", "ab") as file:
-            shards = arquivo.shards
-            for shard in shards:
-                maquina = self.escolher_maquina_baixar_shard(shard.maquinas)
-                with Proxy(f"PYRONAME:{maquina.endereco}") as node:
-                    data = node.baixar_fragmento(nome_arquivo, shard.ordem, file)
+        # Baixar os shards do arquivo
+        os.mkdir("temp")
+        shards = arquivo.shards
+        for shard in shards:
+            maquina = self.escolher_maquina_baixar_shard(shard.maquinas)
+            with Proxy(f"PYRONAME:{maquina.endereco}") as node:
+                data = node.baixar_fragmento(nome_arquivo, shard.ordem)
+                with open(f"temp/{nome_arquivo}", "ab") as file:
                     file.write(data)
         
         # enviar para o cliente
-        envia_arquivo_cliente(f"temp/{nome_arquivo}")
+        # envia_arquivo_cliente(f"temp/{nome_arquivo}")
 
-        os.remove(f"temp/{nome_arquivo}")
+        # os.remove(f"temp/{nome_arquivo}")
+
+
+    def escolher_maquina_baixar_shard(self, maquinas: list[Maquina]) -> Maquina:
+        """
+        Escolhe uma máquina aleatória dentre as disponíveis para baixar o shard.
+        :param maquinas: lista de máquinas disponíveis
+        :return: uma máquina escolhida aleatoriamente
+        """
+        if not maquinas:
+            raise ErroMaquinasNaoEncontradas("Nenhuma máquina disponível para baixar o shard")
+        
+        # Escolhe uma máquina aleatória
+        maquina_escolhida = maquinas[0]
+
+        return maquina_escolhida
 
 
     def possui(self, nome_arquivo):
@@ -200,7 +220,7 @@ class Master:
         """ Seleciona no máximo as 3 melhores máquinas para se realizar o upload do fragmento"""
         # Encontra as 3 melhores máquinas que estão vivas
         maquinas = session.query(Maquina).filter(
-            datetime.now() - Maquina.ultimo_heartbeat < timedelta(seconds=config.TEMPO_HEARTBEAT)
+            datetime.now() - Maquina.ultimo_heartbeat < timedelta(seconds=config.TEMPO_HEARTBEAT) + timedelta(seconds=1)  # +1 para evitar problemas de sincronização
         ).order_by(Maquina.espaco_livre.desc()).limit(3).all()
         if not maquinas:
             raise ErroMaquinasNaoEncontradas
