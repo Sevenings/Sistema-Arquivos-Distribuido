@@ -19,12 +19,14 @@ class Master:
     def start(self):
         # Iniciar o banco de dados
         iniciar_db()
+        registra_logs("MASTER", "Banco de dados iniciado")
 
         # Se registrar no serviço de nomes
         daemon = Daemon()
         ns = locate_ns()
         uri = daemon.register(self)
         ns.register("bigfs.master", uri)
+        registra_logs("MASTER", "Registrado no servidor de nomes como 'bigfs.master'")
         daemon.requestLoop()
 
 
@@ -81,6 +83,8 @@ class Master:
         :return: resultado da operação
         """
 
+        registra_logs("UPLOAD", f"Fragmento {ordem} do arquivo {nome_arquivo}")
+
         print("Upload de arquivo:")
         print(f"Arquivo: {nome_arquivo}")
         print(f"Hash arquivo: {hash_arquivo}")
@@ -112,16 +116,17 @@ class Master:
                                 ordem=ordem,
                                 hash_esperado=hash_fragmento)
                         novo_shard.maquinas.append(maquina)
-                        registra_logs("UPLOAD DE FRAGMENTO", f"Fragmento {hash_fragmento} enviado para {maquina.endereco}")
+                        registra_logs("UPLOAD", f"Fragmento {ordem} enviado para {maquina.endereco}")
                         break
                     except ErroHashInvalido as e:
                         tentativas += 1
-                        registra_logs("UPLOAD DE FRAGMENTO", f"Erro ao enviar fragmento para {maquina.endereco}: {e}")
+                        registra_logs("ERRO", f"Falha ao enviar fragmento {ordem} para {maquina.endereco}: {e}")
                         time.sleep(1)
                 if tentativas == 3:
                     raise ErroHashInvalido
 
         session.commit()
+        registra_logs("UPLOAD", f"Fragmento {ordem} concluído para {len(maquinas_destino)} máquinas")
 
         return True
 
@@ -172,9 +177,12 @@ class Master:
         :param nome_arquivo: nome do arquivo a baixar
         :return: bytes com o arquivo reconstruído
         """
+        registra_logs("DOWNLOAD", f"Iniciando download do arquivo {nome_arquivo}")
+        
         # Encontra o arquivo a ser baixado
         arquivo = session.query(Arquivo).filter_by(nome=nome_arquivo).first()
         if not arquivo:
+            registra_logs("ERRO", f"Arquivo {nome_arquivo} não encontrado")
             raise ErroArquivoNaoExiste(nome_arquivo)
 
         print(f"Baixando arquivo: {nome_arquivo}")
@@ -188,6 +196,8 @@ class Master:
                 data = node.baixar_fragmento(nome_arquivo, shard.ordem)
                 with open(f"temp/{nome_arquivo}", "ab") as file:
                     file.write(data)
+        
+        registra_logs("DOWNLOAD", f"Download do arquivo {nome_arquivo} concluído")
         
         # enviar para o cliente
         # envia_arquivo_cliente(f"temp/{nome_arquivo}")
@@ -241,11 +251,14 @@ class Master:
         return arquivo
 
     def heartbeat(self, id, cpu, espaco_livre):
+        registra_logs("HEARTBEAT", f"Máquina {id}: CPU={cpu}%, Espaço={espaco_livre}MB")
+        
         maquina = session.query(Maquina).filter_by(id=id).first()
-        ultimo_heartbeat = datetime.now()
         if not maquina:
+            registra_logs("ERRO", f"Máquina {id} não encontrada")
             raise ErroMaquinasNaoEncontradas
+        
         maquina.cpu = cpu
         maquina.espaco_livre = espaco_livre
-        maquina.ultimo_heartbeat = ultimo_heartbeat
+        maquina.ultimo_heartbeat = datetime.now()
         session.commit()

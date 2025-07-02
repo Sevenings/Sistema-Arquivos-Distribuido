@@ -15,6 +15,7 @@ from .erros.erros import ErroArquivoJaExiste, ErroArquivoNaoExiste, ErroHashInva
 import base64
 
 from .index import Index
+from .logs import registra_logs
 
 ADDR = "localhost"
 PORT = 8989
@@ -42,9 +43,11 @@ class Node:
             try: 
                 self.cadastrar_no_cluster()
             except NamingError:
+                registra_logs("NODE", "Master não encontrado")
                 print("Master não encontrado.")
                 return
 
+        registra_logs("NODE", f"Iniciando node {self.id}")
         print(f"Iniciando node {self.id}")
 
         # Inicia o index.json
@@ -59,6 +62,7 @@ class Node:
         ns = locate_ns()
         uri = daemon.register(self)
         ns.register(f"bigfs.node.{self.id}", uri)
+        registra_logs("NODE", f"Node {self.id} registrado no servidor de nomes")
         daemon.requestLoop()
 
     
@@ -117,14 +121,15 @@ class Node:
 
     def upload_fragmento(self, nome_arquivo, arquivo_data_pkg, ordem, hash_esperado):
         nome_fragmento = f"{nome_arquivo}_{ordem}"
+        registra_logs("NODE", f"Recebendo fragmento {nome_fragmento}")
 
         # Verifica se arquivo existe
         if not self.verificar_cp(nome_fragmento):
+            registra_logs("ERRO", f"Fragmento {nome_fragmento} já existe")
             raise ErroArquivoJaExiste 
 
         # Debug: Printa que está recebendo o fragmento
         print(f"Recebido fragmento {nome_fragmento}")
-
 
         # Extrai os dados do arquivo
         encoding = arquivo_data_pkg.get('encoding')
@@ -136,6 +141,7 @@ class Node:
         hash = calcular_sha256_bytes(data)
 
         if hash != hash_esperado:
+            registra_logs("ERRO", f"Hash inválido para fragmento {nome_fragmento}")
             raise ErroHashInvalido
 
         # Salvar o fragmento
@@ -145,6 +151,8 @@ class Node:
         # Registrar no indice
         with Index() as index:
             index.adicionar(nome_fragmento, hash, ordem)
+        
+        registra_logs("NODE", f"Fragmento {nome_fragmento} salvo com sucesso")
 
     def verificar_rm(self, nome_arquivo):
         with Index() as index:
@@ -210,6 +218,7 @@ class Node:
     def heartbeat(self):
         """ Thread que envia heartbeats para o master """
 
+        registra_logs("NODE", f"Iniciando thread de heartbeat para node {self.id}")
         print("Iniciando heartbeats")
         tempo_heartbeat = config.TEMPO_HEARTBEAT
 
@@ -225,8 +234,12 @@ class Node:
             espaco_livre = psutil.disk_usage('/').free
 
             # Envia o heartbeat para o master
-            with Proxy("PYRONAME:bigfs.master") as master:
-                master.heartbeat(self.id, cpu, espaco_livre)
+            try:
+                with Proxy("PYRONAME:bigfs.master") as master:
+                    master.heartbeat(self.id, cpu, espaco_livre)
+                registra_logs("HEARTBEAT", f"Node {self.id}: CPU={cpu:.1f}%, Espaço={espaco_livre/1024/1024:.1f}MB")
+            except Exception as e:
+                registra_logs("ERRO", f"Falha no heartbeat do node {self.id}: {str(e)}")
 
             # Aguarda o tempo do heartbeat
             time.sleep(tempo_heartbeat)
