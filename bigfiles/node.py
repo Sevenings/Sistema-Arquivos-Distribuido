@@ -153,23 +153,23 @@ class Node:
         return True
 
 
-    def rm(self, nome_fragmento, ordem):
+    def rm(self, nome_arquivo, ordem):
         # Verifica se arquivo existe
-        if not self.verificar_rm(f"{nome_fragmento}_{ordem}"):
+        if not self.verificar_rm(f"{nome_arquivo}_{ordem}"):
             raise ErroArquivoNaoExiste
 
         # Debug: Printa que está removendo o fragmento
-        print(f"Removendo fragmento {nome_fragmento}_{ordem}")
+        print(f"Removendo fragmento {nome_arquivo}_{ordem}")
 
         with Index() as index:
-            path_arquivo = index.localizacao(f"{nome_fragmento}_{ordem}")
+            path_arquivo = index.localizacao(nome_arquivo, ordem)
 
         # Apagar arquivo
         os.remove(path_arquivo)
 
         # Registrar no índice
         with Index() as index:
-            index.deletar(f"{nome_fragmento}_{ordem}")
+            index.deletar(f"{nome_arquivo}_{ordem}")
 
 
     def verificar_get(self, nome_arquivo):
@@ -180,6 +180,7 @@ class Node:
 
 
     def get(self, nome_arquivo, ordem=None):
+    def baixar_fragmento(self, nome_arquivo, ordem=None):
         """
         Envia o arquivo solicitado para o cliente
         """
@@ -187,7 +188,7 @@ class Node:
             raise ErroArquivoNaoExiste
 
         with Index() as index:
-            path_arquivo = index.localizacao(nome_arquivo)
+            path_arquivo = index.localizacao(nome_arquivo, ordem)
 
         with open(path_arquivo, 'rb') as file:
             data = file.read()
