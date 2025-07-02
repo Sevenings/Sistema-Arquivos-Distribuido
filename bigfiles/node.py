@@ -111,9 +111,15 @@ class Node:
 
 
     def upload_fragmento(self, nome_arquivo, arquivo_data_pkg, ordem, hash_esperado):
+        nome_fragmento = f"{nome_arquivo}_{ordem}"
+
         # Verifica se arquivo existe
-        if not self.verificar_cp(nome_arquivo):
+        if not self.verificar_cp(nome_fragmento):
             raise ErroArquivoJaExiste 
+
+        # Debug: Printa que está recebendo o fragmento
+        print(f"Recebido fragmento {nome_fragmento}")
+
 
         # Extrai os dados do arquivo
         encoding = arquivo_data_pkg.get('encoding')
@@ -128,12 +134,12 @@ class Node:
             raise ErroHashInvalido
 
         # Salvar o fragmento
-        with open(f"{FILES_FOLDER}/{nome_arquivo}_{ordem}", 'wb') as file:
+        with open(f"{FILES_FOLDER}/{nome_fragmento}", 'wb') as file:
             file.write(data)
 
         # Registrar no indice
         with Index() as index:
-            index.adicionar(nome_arquivo, hash, ordem)
+            index.adicionar(nome_fragmento, hash, ordem)
 
     def verificar_rm(self, nome_arquivo):
         with Index() as index:
@@ -146,6 +152,9 @@ class Node:
         # Verifica se arquivo existe
         if not self.verificar_rm(f"{nome_fragmento}_{ordem}"):
             raise ErroArquivoNaoExiste
+
+        # Debug: Printa que está removendo o fragmento
+        print(f"Removendo fragmento {nome_fragmento}_{ordem}")
 
         with Index() as index:
             path_arquivo = index.localizacao(f"{nome_fragmento}_{ordem}")
@@ -183,14 +192,14 @@ class Node:
 
     def ls(self):
         """ 
-        Retorna a lista dos arquivos disponíveis no nó 
+        Retorna a lista dos fragmentos disponíveis no nó 
 
         :return: lista de nomes de arquivos 
         """
         with Index() as index:
-            lista_arquivos = index.listar()
-            print(lista_arquivos)
-        return lista_arquivos
+            lista_fragmentos = index.listar()
+            print(lista_fragmentos)
+        return lista_fragmentos
 
 
     def heartbeat(self):
