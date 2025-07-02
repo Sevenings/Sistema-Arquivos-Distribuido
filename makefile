@@ -13,7 +13,7 @@ server:
 	$(PYTHON) main.py server
 
 erase:
-	rm data/*
-	rm id.txt
-	rm index.json
-	rm files/*
+	rm data/* || 1
+	rm id.txt || 1
+	rm index.json || 1
+	rm files/* || 1
