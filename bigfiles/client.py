@@ -49,16 +49,8 @@ class Client:
 
     def get(self, nome_arquivo):
         with Proxy("PYRONAME:bigfs.master") as master:
-            master.get(nome_arquivo)
+            master.baixar_arquivo(nome_arquivo)
 
-        encoding = data.get('encoding')
-        if encoding == 'base64':
-            data = data.get('data')
-            data = base64.b64decode(data)
-
-        with open(nome_arquivo, 'wb') as file:
-            file.write(data)
-  
 
     def ls(self):
         with Proxy("PYRONAME:bigfs.master") as master:
