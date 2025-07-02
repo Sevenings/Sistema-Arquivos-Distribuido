@@ -1,5 +1,6 @@
 from datetime import datetime
 from Pyro5.api import expose, Daemon, locate_ns, Proxy
+from Pyro5.errors import NamingError
 import os
 from pathlib import Path
 import json
@@ -38,7 +39,11 @@ class Node:
     def start(self):
         # Se não houver ID (Primeira vez iniciado) acessa o master e procura um ID
         if self.id is None:
-            self.cadastrar_no_cluster()
+            try: 
+                self.cadastrar_no_cluster()
+            except NamingError:
+                print("Master não encontrado.")
+                return
 
         print(f"Iniciando node {self.id}")
 
