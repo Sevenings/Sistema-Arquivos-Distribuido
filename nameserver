@@ -1,0 +1,7 @@
+#!.venv/bin/python
+
+from Pyro5.nameserver import start_ns_loop
+
+if __name__ == "__main__":
+    print("Iniciando Name Server...")
+    start_ns_loop()  
