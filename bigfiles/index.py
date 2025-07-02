@@ -84,7 +84,8 @@ class Index:
         return [ key for key in self.index.keys() ]
 
 
-    def localizacao(self, nome_arquivo):
-        return self.index[nome_arquivo]['path']
+    def localizacao(self, nome_arquivo, ordem):
+        nome_fragmento = f"{nome_arquivo}_{ordem}"
+        return self.index[nome_fragmento]['path']
 
 
